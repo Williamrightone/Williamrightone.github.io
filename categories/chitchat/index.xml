@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+    <channel>
+        <title>Chit Chat on Lonely William</title>
+        <link>https://williamrightone.github.io/categories/chitchat/</link>
+        <description>Recent content in Chit Chat on Lonely William</description>
+        <generator>Hugo -- gohugo.io</generator>
+        <language>en</language>
+        <lastBuildDate>Sun, 01 May 2022 12:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/categories/chitchat/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>The Impact of ChatGPT on Software Engineer</title>
+        <link>https://williamrightone.github.io/p/impact-of-chatgpt/</link>
+        <pubDate>Sun, 01 May 2022 12:00:00 +0000</pubDate>
+        
+        <guid>https://williamrightone.github.io/p/impact-of-chatgpt/</guid>
+        <description>&lt;img src="https://williamrightone.github.io/p/impact-of-chatgpt/main.png" alt="Featured image of post The Impact of ChatGPT on Software Engineer" /&gt;&lt;p&gt;先說結論，ChatGPT 是非常強大的工具，想要不被 AI 淘汰，勢必要能做到 AI 做不到的事情，便是需求分析與創新。&lt;/p&gt;
+&lt;p&gt;自從去年 ChatGPT 問世，有不少朋友和我討論這點，當時最令我震驚的是如果我能夠完整地闡述軟體需求與規格，他竟然能夠高效率的做出一支可以使用的 API&lt;/p&gt;
+&lt;p&gt;有幸地的可以嘗試複製下列規格問 ChatGPT:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;使用 Java 11 搭配 Spring boot 2.5.7 版本，建立一個 Web MVC API，要有 Controller，Service，ServiceImpl，Repository。Repository 使用 Spring Data JPA，配合 Lombok 簡化 Getter Setter 設置。Data Base 使用 SQL Server。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;這支 API 是用於計算 BMI。會以 POST 傳入 json 格式，包含 User 的 ID，身高(公分)，體重(公斤) 三個參數。先在 Controller 接受，由 Service 這個 interface 定義方法，ServiceImpl 實作 Service，並注入 Repository，將此 Json 存入 DataBase 的 BMI table 內。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;blockquote&gt;
+&lt;p&gt;請提供我 pom.xml, Controller，Service，ServiceImpl，Repository，Entity 與 User 類別作為 Dto。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;結果 ChatGPT 成功地寫出了一隻可以計算 BMI 並存入 DB 的 API，雖然他將算 BMI 的方法寫在 Controller 內部，但可想而知若我給予更完整的規格，甚至逐步調整與完善，ChatGPT 基本上能夠完成大部分碼農的工作。&lt;/p&gt;
+&lt;p&gt;這時值得反思的就來了，如果提供 ChatGPT 完整的需求規格以及架構，那是不是未來僅需要 BA、SA、SD 就能完成大部分的工作了。而新手工程師入行的門檻也隨之提升，變成在學校或是在實習的期間，就需要先投注時間在更專業的架構學習上了。&lt;/p&gt;
+</description>
+        </item>
+        <item>
+        <title>Hello WorldLine</title>
+        <link>https://williamrightone.github.io/p/hello-world/</link>
+        <pubDate>Sun, 01 May 2022 00:00:00 +0000</pubDate>
+        
+        <guid>https://williamrightone.github.io/p/hello-world/</guid>
+        <description>&lt;img src="https://williamrightone.github.io/p/hello-world/IMG_4691.JPG" alt="Featured image of post Hello WorldLine" /&gt;&lt;p&gt;2022 年 12 月，我辭去在內湖的系統分析師一職，進入了世界第四的信用卡支付外商，重新做起 Software Engineer。&lt;/p&gt;
+&lt;p&gt;新的環境專案規模更大，Domain Knowledge 也更多，隨之而來的是各種專案會遇到的問題，在這裡逐一被放大。原來這些問題在任何公司都不會消失，總是會有等待被解決的問題，也總是會有等著別人去解決問題的人。&lt;/p&gt;
+&lt;p&gt;不同的是面對過往無能為力的狀況，現在手中有了資源和支持，我卻沒有辦法自信的解決，導致前陣子幾乎迷失方向，有點失去工作的目標。但至少有獲得更高的視野，有認識更厲害的人。&lt;/p&gt;
+&lt;p&gt;剛好藉著 51 連假重新搭建 GitBook，整理一下最近的筆記，或許明年的這個時候，會覺得 2023 真是值得紀念的一年。&lt;/p&gt;
+</description>
+        </item>
+        
+    </channel>
+</rss>
