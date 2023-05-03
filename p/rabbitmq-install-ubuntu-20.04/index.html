@@ -1,19 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='2023 或許會是值得紀念的一年'>
-<title>Hello WorldLine</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在 Ubuntu 20.04 上安裝 RabbitMq'>
+<title>RabbitMq Ubuntu 20.04 installation</title>
 
-<link rel='canonical' href='https://williamrightone.github.io/p/hello-world/'>
+<link rel='canonical' href='https://williamrightone.github.io/p/rabbitmq-install-ubuntu-20.04/'>
 
-<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='Hello WorldLine'>
-<meta property='og:description' content='2023 或許會是值得紀念的一年'>
-<meta property='og:url' content='https://williamrightone.github.io/p/hello-world/'>
+<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='RabbitMq Ubuntu 20.04 installation'>
+<meta property='og:description' content='在 Ubuntu 20.04 上安裝 RabbitMq'>
+<meta property='og:url' content='https://williamrightone.github.io/p/rabbitmq-install-ubuntu-20.04/'>
 <meta property='og:site_name' content='Lonely William'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Chit Chat' /><meta property='article:published_time' content='2022-05-01T00:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-05-01T00:00:00&#43;00:00'/><meta property='og:image' content='https://williamrightone.github.io/p/hello-world/IMG_4691.JPG' />
-<meta name="twitter:title" content="Hello WorldLine">
-<meta name="twitter:description" content="2023 或許會是值得紀念的一年"><meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:image" content='https://williamrightone.github.io/p/hello-world/IMG_4691.JPG' />
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='DevOps' /><meta property='article:tag' content='CI' /><meta property='article:published_time' content='2022-05-03T08:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-05-03T08:00:00&#43;00:00'/>
+<meta name="twitter:title" content="RabbitMq Ubuntu 20.04 installation">
+<meta name="twitter:description" content="在 Ubuntu 20.04 上安裝 RabbitMq">
     </head>
     <body class="
     article-page
@@ -251,30 +250,56 @@
     </ol>
 </aside>
 
-    
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li><a href="#前言">前言</a></li>
+        <li><a href="#安裝-erlangotp">安裝 Erlang/OTP</a></li>
+        <li><a href="#安裝-rabbitmq">安裝 RabbitMQ</a></li>
+        <li><a href="#設定角色與權限">設定角色與權限</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
 
             <main class="main full-width">
-    <article class="has-image main-article">
+    <article class="main-article">
     <header class="article-header">
-        <div class="article-image">
-            <a href="/p/hello-world/">
-                <img src="/p/hello-world/IMG_4691_hu8149ecc8407c15e8477c92fc3a6ec3c7_996547_800x0_resize_q75_box.JPG"
-                        srcset="/p/hello-world/IMG_4691_hu8149ecc8407c15e8477c92fc3a6ec3c7_996547_800x0_resize_q75_box.JPG 800w, /p/hello-world/IMG_4691_hu8149ecc8407c15e8477c92fc3a6ec3c7_996547_1600x0_resize_q75_box.JPG 1600w"
-                        width="800" 
-                        height="533" 
-                        loading="lazy"
-                        alt="Featured image of post Hello WorldLine" />
-                
-            </a>
-        </div>
-    
 
     <div class="article-details">
     
     <header class="article-category">
         
-            <a href="/categories/chitchat/" style="background-color: #2a9d8f; color: #fff;">
-                Chit Chat
+            <a href="/categories/linux/" style="background-color: #2a9d8f; color: #fff;">
+                Linux
             </a>
         
     </header>
@@ -282,12 +307,12 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/hello-world/">Hello WorldLine</a>
+            <a href="/p/rabbitmq-install-ubuntu-20.04/">RabbitMq Ubuntu 20.04 installation</a>
         </h2>
     
         
         <h3 class="article-subtitle">
-            2023 或許會是值得紀念的一年
+            在 Ubuntu 20.04 上安裝 RabbitMq
         </h3>
         
     </div>
@@ -308,7 +333,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">May 01, 2022</time>
+                <time class="article-time--published">May 03, 2022</time>
             </div>
         
 
@@ -338,12 +363,84 @@
     <section class="article-content">
     
     
-    <p>2022 年 12 月，我辭去在內湖的系統分析師一職，進入了世界第四的信用卡支付外商，重新做起 Software Engineer。</p>
-<p>新的環境專案規模更大，Domain Knowledge 也更多，有趣的是周遭的人、事、物也被放大了。</p>
-<p>原來前公司有的問題在任何公司都不會消失，總是會有等待被解決的問題，總是會有等待別人去解決問題的人，總是有搞不清楚也不想搞清楚狀況的人。</p>
-<p>當然好的部分也被放大了許多，能看到更高更廣的視野，遇到有經驗又可靠而且脾氣超好的人，學到以前想不通甚至沒想過的事情。</p>
-<p>最不同的是面對過往無能為力的狀況，現在手中有了資源和支持，我卻還沒有自信可以解決，導致最近幾乎迷失方向，有點失去工作的目標。</p>
-<p>剛好藉著 51 連假重新搭建 GitBook，整理一下最近的筆記，或許明年的這個時候，會覺得 2023 真是值得紀念的一年。</p>
+    <h3 id="前言">前言</h3>
+<p>2023 年開始學習 Kafka 和 RabbitMq，順便記錄一下 RabbitMq 搭建的過程。</p>
+<h3 id="安裝-erlangotp">安裝 Erlang/OTP</h3>
+<p>RabbitMq 是由 Erlang 開發的，就和 Apache ActiveMq 由 Java 開發的一樣，因此需要先安裝 Erlang 環境。</p>
+<p>流程上不外乎引入 GPG Key 與安裝。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt install curl software-properties-common apt-transport-https lsb-release
+</span></span><span class="line"><span class="cl">curl -fsSL https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc <span class="p">|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/erlang.gpg
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;deb https://packages.erlang-solutions.com/ubuntu </span><span class="k">$(</span>lsb_release -cs<span class="k">)</span><span class="s2"> contrib&#34;</span> <span class="p">|</span> sudo tee /etc/apt/sources.list.d/erlang.list
+</span></span><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt install erlang
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="安裝-rabbitmq">安裝 RabbitMQ</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh <span class="p">|</span> sudo bash
+</span></span><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt install rabbitmq-server
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>安裝 RabbitMQ Management (Web GUI)</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo rabbitmq-plugins <span class="nb">enable</span> rabbitmq_management
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>完成後可以在 15672 port 訪問。</p>
+<h3 id="設定角色與權限">設定角色與權限</h3>
+<p>一開始 RabbitMq 有預設一個 guest 的權限，不過尚未賦予一些權限，流程上會有三個步驟:</p>
+<ol>
+<li>新增帳號密碼</li>
+<li>為該帳號密碼賦予權限</li>
+<li>設置該權限能訪問的 vHost</li>
+</ol>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 顯示當前 user 列表</span>
+</span></span><span class="line"><span class="cl">sudo rabbitmqctl list_users
+</span></span><span class="line"><span class="cl"><span class="c1"># 新增帳號密碼</span>
+</span></span><span class="line"><span class="cl">sudo rabbitmqctl add_user admin Demo1234
+</span></span><span class="line"><span class="cl"><span class="c1"># 設置角色</span>
+</span></span><span class="line"><span class="cl">sudo rabbitmqctl set_user_tags admin administrator
+</span></span><span class="line"><span class="cl"><span class="c1"># 設定角色權限，冒號內的分別是 vhost, configm write read</span>
+</span></span><span class="line"><span class="cl">sudo rabbitmqctl set_permissions -p <span class="s2">&#34;/&#34;</span> admin <span class="s2">&#34;.*&#34;</span> <span class="s2">&#34;.*&#34;</span> <span class="s2">&#34;.*&#34;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>完成後就可以用 admin 訪問</p>
 
 </section>
 
@@ -352,7 +449,9 @@
     
     <section class="article-tags">
         
-            <a href="/tags/chit-chat/">Chit Chat</a>
+            <a href="/tags/devops/">DevOps</a>
+        
+            <a href="/tags/ci/">CI</a>
         
     </section>
 
@@ -386,23 +485,23 @@
             
                 
 <article class="has-image">
-    <a href="/p/impact-of-chatgpt/">
+    <a href="/p/sonarqube-install-ubuntu-20.04/">
         
         
             <div class="article-image">
-                <img src="/p/impact-of-chatgpt/main.1891cfd035cbf19f6db925d23206270e_hub505298a716eb5b5dc73900e54fd85fd_39243_250x150_fill_box_smart1_3.png" 
+                <img src="/p/sonarqube-install-ubuntu-20.04/sonarqube.02e24464152d1f85d75355926d020898_hu66386967d9fd2808e3fd1c0f1c664146_158066_250x150_fill_box_smart1_3.png" 
                         width="250" 
                         height="150" 
                         loading="lazy"
-                        alt="Featured image of post The Impact of ChatGPT on Software Engineer"
-                        data-key="impact-of-chatGPT" 
-                        data-hash="md5-GJHP0DXL8Z9tuSXSMgYnDg==">
+                        alt="Featured image of post SonarQube Ubuntu 20.04 installation"
+                        data-key="sonarqube-install-ubuntu-20.04" 
+                        data-hash="md5-AuJEZBUtH4XXU1WSbQIImA==">
                 
             </div>
         
 
         <div class="article-details">
-            <h2 class="article-title">The Impact of ChatGPT on Software Engineer</h2>
+            <h2 class="article-title">SonarQube Ubuntu 20.04 installation</h2>
         </div>
     </a>
 </article>

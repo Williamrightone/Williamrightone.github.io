@@ -12,7 +12,7 @@
         <pubDate>Sun, 01 May 2022 08:00:00 +0000</pubDate>
         
         <guid>https://williamrightone.github.io/p/sonarqube-install-ubuntu-20.04/</guid>
-        <description>&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
+        <description>&lt;img src="https://williamrightone.github.io/p/sonarqube-install-ubuntu-20.04/sonarqube.png" alt="Featured image of post SonarQube Ubuntu 20.04 installation" /&gt;&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
 &lt;p&gt;SonarQube 是一套開源的代碼掃描軟體，需要仰賴 sql 伺服器才能運作，另外 2019 年停止支援 mysql ，目前推薦開源的 sql 是 PostgreSQL。&lt;/p&gt;
 &lt;p&gt;記得第一次嘗試的時候是直接在 Ubuntu 上搭建，並串接 Jenkins Pipeline，再 checkout 後掃描；而 SonarQube 直接搭建在 Ubuntu 上其實很多毛，大概列舉在下面。&lt;/p&gt;
 &lt;ul&gt;
