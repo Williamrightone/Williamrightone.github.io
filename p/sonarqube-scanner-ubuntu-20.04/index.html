@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在 Ubuntu 20.04 上安裝 RabbitMq'>
-<title>RabbitMq Ubuntu 20.04 installation</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案'>
+<title>SonarQube Scan Spring boot project</title>
 
-<link rel='canonical' href='https://williamrightone.github.io/p/rabbitmq-install-ubuntu-20.04/'>
+<link rel='canonical' href='https://williamrightone.github.io/p/sonarqube-scanner-ubuntu-20.04/'>
 
-<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='RabbitMq Ubuntu 20.04 installation'>
-<meta property='og:description' content='在 Ubuntu 20.04 上安裝 RabbitMq'>
-<meta property='og:url' content='https://williamrightone.github.io/p/rabbitmq-install-ubuntu-20.04/'>
+<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='SonarQube Scan Spring boot project'>
+<meta property='og:description' content='在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案'>
+<meta property='og:url' content='https://williamrightone.github.io/p/sonarqube-scanner-ubuntu-20.04/'>
 <meta property='og:site_name' content='Lonely William'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='DevOps' /><meta property='article:tag' content='CI' /><meta property='article:published_time' content='2022-05-03T08:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-05-03T08:00:00&#43;00:00'/>
-<meta name="twitter:title" content="RabbitMq Ubuntu 20.04 installation">
-<meta name="twitter:description" content="在 Ubuntu 20.04 上安裝 RabbitMq">
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='DevOps' /><meta property='article:tag' content='CI' /><meta property='article:published_time' content='2022-05-04T08:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-05-04T08:00:00&#43;00:00'/>
+<meta name="twitter:title" content="SonarQube Scan Spring boot project">
+<meta name="twitter:description" content="在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案">
     </head>
     <body class="
     article-page
@@ -272,12 +272,12 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li>
+    <li><a href="#掃描-spring-boot-專案">掃描 spring boot 專案</a>
       <ol>
-        <li><a href="#前言">前言</a></li>
-        <li><a href="#安裝-erlangotp">安裝 Erlang/OTP</a></li>
-        <li><a href="#安裝-rabbitmq">安裝 RabbitMQ</a></li>
-        <li><a href="#設定角色與權限">設定角色與權限</a></li>
+        <li><a href="#安裝-java--mavne-環境">安裝 Java &amp; mavne 環境</a></li>
+        <li><a href="#傳送原始碼-winscp">傳送原始碼 (winScp)</a></li>
+        <li><a href="#建立-project-並執行掃描">建立 Project 並執行掃描</a></li>
+        <li><a href="#審視結果與改善">審視結果與改善</a></li>
       </ol>
     </li>
   </ol>
@@ -298,8 +298,8 @@
     
     <header class="article-category">
         
-            <a href="/categories/linux/" style="background-color: #2a9d8f; color: #fff;">
-                Linux
+            <a href="/categories/devops/" style="background-color: #2a9d8f; color: #fff;">
+                DevOps
             </a>
         
     </header>
@@ -307,12 +307,12 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/rabbitmq-install-ubuntu-20.04/">RabbitMq Ubuntu 20.04 installation</a>
+            <a href="/p/sonarqube-scanner-ubuntu-20.04/">SonarQube Scan Spring boot project</a>
         </h2>
     
         
         <h3 class="article-subtitle">
-            在 Ubuntu 20.04 上安裝 RabbitMq
+            在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案
         </h3>
         
     </div>
@@ -333,7 +333,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">May 03, 2022</time>
+                <time class="article-time--published">May 04, 2022</time>
             </div>
         
 
@@ -363,84 +363,66 @@
     <section class="article-content">
     
     
-    <h3 id="前言">前言</h3>
-<p>2023 年開始學習 Kafka 和 RabbitMq，順便記錄一下 RabbitMq 搭建的過程。</p>
-<h3 id="安裝-erlangotp">安裝 Erlang/OTP</h3>
-<p>RabbitMq 是由 Erlang 開發的，就和 Apache ActiveMq 由 Java 開發的一樣，因此需要先安裝 Erlang 環境。</p>
-<p>流程上不外乎引入 GPG Key 與安裝。</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo apt update
-</span></span><span class="line"><span class="cl">sudo apt install curl software-properties-common apt-transport-https lsb-release
-</span></span><span class="line"><span class="cl">curl -fsSL https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc <span class="p">|</span> sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/erlang.gpg
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="nb">echo</span> <span class="s2">&#34;deb https://packages.erlang-solutions.com/ubuntu </span><span class="k">$(</span>lsb_release -cs<span class="k">)</span><span class="s2"> contrib&#34;</span> <span class="p">|</span> sudo tee /etc/apt/sources.list.d/erlang.list
-</span></span><span class="line"><span class="cl">sudo apt update
-</span></span><span class="line"><span class="cl">sudo apt install erlang
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="安裝-rabbitmq">安裝 RabbitMQ</h3>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.deb.sh <span class="p">|</span> sudo bash
-</span></span><span class="line"><span class="cl">sudo apt update
-</span></span><span class="line"><span class="cl">sudo apt install rabbitmq-server
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>安裝 RabbitMQ Management (Web GUI)</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo rabbitmq-plugins <span class="nb">enable</span> rabbitmq_management
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>完成後可以在 15672 port 訪問。</p>
-<h3 id="設定角色與權限">設定角色與權限</h3>
-<p>一開始 RabbitMq 有預設一個 guest 的權限，不過尚未賦予一些權限，流程上會有三個步驟:</p>
+    <h2 id="掃描-spring-boot-專案">掃描 spring boot 專案</h2>
+<p>掃描需要有 java &amp; mavne 環境，流程上需要:</p>
 <ol>
-<li>新增帳號密碼</li>
-<li>為該帳號密碼賦予權限</li>
-<li>設置該權限能訪問的 vHost</li>
+<li>將原始碼傳送到 linux 的資料夾內，可以使用 git checkout 或是用 winScp 傳送到裡面</li>
+<li>在 SonarQube 建立一個專案，獲取執行的指令(後續說明)</li>
+<li>在 pom 的位置執行指令，開始掃描</li>
+<li>在 SonarQube 瀏覽結果</li>
 </ol>
+<h3 id="安裝-java--mavne-環境">安裝 Java &amp; mavne 環境</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span><span class="lnt">7
-</span><span class="lnt">8
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 顯示當前 user 列表</span>
-</span></span><span class="line"><span class="cl">sudo rabbitmqctl list_users
-</span></span><span class="line"><span class="cl"><span class="c1"># 新增帳號密碼</span>
-</span></span><span class="line"><span class="cl">sudo rabbitmqctl add_user admin Demo1234
-</span></span><span class="line"><span class="cl"><span class="c1"># 設置角色</span>
-</span></span><span class="line"><span class="cl">sudo rabbitmqctl set_user_tags admin administrator
-</span></span><span class="line"><span class="cl"><span class="c1"># 設定角色權限，冒號內的分別是 vhost, configm write read</span>
-</span></span><span class="line"><span class="cl">sudo rabbitmqctl set_permissions -p <span class="s2">&#34;/&#34;</span> admin <span class="s2">&#34;.*&#34;</span> <span class="s2">&#34;.*&#34;</span> <span class="s2">&#34;.*&#34;</span>
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1">#更新</span>
+</span></span><span class="line"><span class="cl">sudo apt update -y
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">#安裝 java 11</span>
+</span></span><span class="line"><span class="cl">sudo apt install openjdk-17-jdk -y
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">#安裝 maven </span>
+</span></span><span class="line"><span class="cl">sudo apt update
+</span></span><span class="line"><span class="cl">sudo apt install maven
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">java -version
+</span></span><span class="line"><span class="cl">mvn -v
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>完成後就可以用 admin 訪問</p>
+</div><h3 id="傳送原始碼-winscp">傳送原始碼 (winScp)</h3>
+<p>次步驟亦可使用 git checkout 程式碼，之後整合 Gitlab ci 時會再開一篇</p>
+<p>為求方便，這裡使用 MobaXterm 連線到 ubuntu 內，在 /home/{userName}/ 下把專案拉進去 (事實上就是 scp)</p>
+<h3 id="建立-project-並執行掃描">建立 Project 並執行掃描</h3>
+<ol>
+<li>登入 SonarQube，點選 add Project =&gt; Manually</li>
+<li>輸入 Project key (應用於生成 token) 和 Display name</li>
+<li>Provide a token: 用於識別個人身分，可以建立新的或使用舊的
+<ul>
+<li>The token is used to identify you when an analysis is performed.</li>
+</ul>
+</li>
+<li>若選擇生成，記得紀錄 token，並點選 continue</li>
+<li>Run analysis on your project: 點選 Maven</li>
+<li>此時會生成一組指令，將其複製</li>
+<li>連線到 linux 內，cd 到 /home/{userName}/{projectName} 中，要與 pom 位置相同</li>
+<li>貼上指令執行掃描</li>
+<li>完成後即可在 Web 內看到結果</li>
+</ol>
+<h3 id="審視結果與改善">審視結果與改善</h3>
+<p>(更新中)</p>
 
 </section>
 
@@ -484,19 +466,6 @@
         <div class="flex article-list--tile">
             
                 
-<article class="">
-    <a href="/p/sonarqube-scanner-ubuntu-20.04/">
-        
-        
-
-        <div class="article-details">
-            <h2 class="article-title">SonarQube Scan Spring boot project</h2>
-        </div>
-    </a>
-</article>
-
-            
-                
 <article class="has-image">
     <a href="/p/sonarqube-install-ubuntu-20.04/">
         
@@ -515,6 +484,19 @@
 
         <div class="article-details">
             <h2 class="article-title">SonarQube Ubuntu 20.04 installation</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/rabbitmq-install-ubuntu-20.04/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">RabbitMq Ubuntu 20.04 installation</h2>
         </div>
     </a>
 </article>
