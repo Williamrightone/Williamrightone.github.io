@@ -274,7 +274,7 @@
   <ol>
     <li><a href="#掃描-spring-boot-專案">掃描 spring boot 專案</a>
       <ol>
-        <li><a href="#安裝-java--mavne-環境">安裝 Java &amp; mavne 環境</a></li>
+        <li><a href="#安裝-java--mavne-環境-須注意版本">安裝 Java &amp; mavne 環境 (須注意版本)</a></li>
         <li><a href="#傳送原始碼-winscp">傳送原始碼 (winScp)</a></li>
         <li><a href="#建立-project-並執行掃描">建立 Project 並執行掃描</a></li>
         <li><a href="#審視結果與改善">審視結果與改善</a></li>
@@ -348,7 +348,7 @@
 
 
                 <time class="article-time--reading">
-                    1 minute read
+                    2 minute read
                 </time>
             </div>
         
@@ -371,7 +371,7 @@
 <li>在 pom 的位置執行指令，開始掃描</li>
 <li>在 SonarQube 瀏覽結果</li>
 </ol>
-<h3 id="安裝-java--mavne-環境">安裝 Java &amp; mavne 環境</h3>
+<h3 id="安裝-java--mavne-環境-須注意版本">安裝 Java &amp; mavne 環境 (須注意版本)</h3>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -392,7 +392,7 @@
 </span></span><span class="line"><span class="cl">sudo apt update -y
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="c1">#安裝 java 11</span>
-</span></span><span class="line"><span class="cl">sudo apt install openjdk-17-jdk -y
+</span></span><span class="line"><span class="cl">sudo apt install openjdk-11-jdk -y
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl"><span class="c1">#安裝 maven </span>
 </span></span><span class="line"><span class="cl">sudo apt update
@@ -400,6 +400,70 @@
 </span></span><span class="line"><span class="cl">
 </span></span><span class="line"><span class="cl">java -version
 </span></span><span class="line"><span class="cl">mvn -v
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>這裡要注意一下，在前一篇用 docker-compose 啟動 SonarQube 時，SonarQube 的版本和 openJdk 版本要有對應，不然在後面階段很可能會出現以下錯誤</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> Error executing Maven.
+</span></span><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> java.lang.IllegalStateException: Unable to load cache item
+</span></span><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> Caused by: Unable to load cache item
+</span></span><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> Caused by: Could not initialize class com.google.inject.internal.cglib.core.<span class="nv">$MethodWrapper</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>若不小心手殘裝錯 java 版本，可以使用 <code>sudo update-alternatives --config java</code> 來更改</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">william@ubudev:~/LotteryAgentScheduler$ java -version
+</span></span><span class="line"><span class="cl">openjdk version <span class="s2">&#34;17.0.6&#34;</span> 2023-01-17
+</span></span><span class="line"><span class="cl">OpenJDK Runtime Environment <span class="o">(</span>build 17.0.6+10-Ubuntu-0ubuntu120.04.1<span class="o">)</span>
+</span></span><span class="line"><span class="cl">OpenJDK 64-Bit Server VM <span class="o">(</span>build 17.0.6+10-Ubuntu-0ubuntu120.04.1, mixed mode, sharing<span class="o">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">william@ubudev:~/LotteryAgentScheduler$ sudo update-alternatives --config java
+</span></span><span class="line"><span class="cl">There are <span class="m">2</span> choices <span class="k">for</span> the alternative java <span class="o">(</span>providing /usr/bin/java<span class="o">)</span>.
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  Selection    Path                                         Priority   Status
+</span></span><span class="line"><span class="cl">------------------------------------------------------------
+</span></span><span class="line"><span class="cl">* <span class="m">0</span>            /usr/lib/jvm/java-17-openjdk-amd64/bin/java   <span class="m">1711</span>      auto mode
+</span></span><span class="line"><span class="cl">  <span class="m">1</span>            /usr/lib/jvm/java-11-openjdk-amd64/bin/java   <span class="m">1111</span>      manual mode
+</span></span><span class="line"><span class="cl">  <span class="m">2</span>            /usr/lib/jvm/java-17-openjdk-amd64/bin/java   <span class="m">1711</span>      manual mode
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">Press &lt;enter&gt; to keep the current choice<span class="o">[</span>*<span class="o">]</span>, or <span class="nb">type</span> selection number: <span class="m">1</span>
+</span></span><span class="line"><span class="cl">update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/java to provide /usr/bin/java <span class="o">(</span>java<span class="o">)</span> in manual mode
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">william@ubudev:~/LotteryAgentScheduler$ java -version
+</span></span><span class="line"><span class="cl">openjdk version <span class="s2">&#34;11.0.18&#34;</span> 2023-01-17
+</span></span><span class="line"><span class="cl">OpenJDK Runtime Environment <span class="o">(</span>build 11.0.18+10-post-Ubuntu-0ubuntu120.04.1<span class="o">)</span>
+</span></span><span class="line"><span class="cl">OpenJDK 64-Bit Server VM <span class="o">(</span>build 11.0.18+10-post-Ubuntu-0ubuntu120.04.1, mixed mode, sharing<span class="o">)</span>
 </span></span></code></pre></td></tr></table>
 </div>
 </div><h3 id="傳送原始碼-winscp">傳送原始碼 (winScp)</h3>
