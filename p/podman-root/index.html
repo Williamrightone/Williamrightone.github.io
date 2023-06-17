@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='H2 資料庫測試出現 JdbcSQLSyntaxErrorException'>
-<title>JdbcSQLSyntaxErrorException</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Podman 上傳檔案遭遇 AccessDeniedException (mount 路徑)'>
+<title>Podman, mount path ownership become root &amp; AccessDeniedException</title>
 
-<link rel='canonical' href='https://williamrightone.github.io/p/jdbcsqlsyntaxerrorexception/'>
+<link rel='canonical' href='https://williamrightone.github.io/p/podman-root/'>
 
-<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='JdbcSQLSyntaxErrorException'>
-<meta property='og:description' content='H2 資料庫測試出現 JdbcSQLSyntaxErrorException'>
-<meta property='og:url' content='https://williamrightone.github.io/p/jdbcsqlsyntaxerrorexception/'>
+<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='Podman, mount path ownership become root &amp; AccessDeniedException'>
+<meta property='og:description' content='Podman 上傳檔案遭遇 AccessDeniedException (mount 路徑)'>
+<meta property='og:url' content='https://williamrightone.github.io/p/podman-root/'>
 <meta property='og:site_name' content='Lonely William'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Exception' /><meta property='article:published_time' content='2022-05-01T14:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-05-01T14:00:00&#43;00:00'/>
-<meta name="twitter:title" content="JdbcSQLSyntaxErrorException">
-<meta name="twitter:description" content="H2 資料庫測試出現 JdbcSQLSyntaxErrorException">
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Exception' /><meta property='article:tag' content='CI' /><meta property='article:published_time' content='2022-06-18T16:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-06-18T16:00:00&#43;00:00'/>
+<meta name="twitter:title" content="Podman, mount path ownership become root &amp; AccessDeniedException">
+<meta name="twitter:description" content="Podman 上傳檔案遭遇 AccessDeniedException (mount 路徑)">
     </head>
     <body class="
     article-page
@@ -275,7 +275,7 @@
     <li>
       <ol>
         <li><a href="#情境">情境</a></li>
-        <li><a href="#原因">原因</a></li>
+        <li><a href="#解析">解析</a></li>
         <li><a href="#解法">解法</a></li>
       </ol>
     </li>
@@ -306,12 +306,12 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/jdbcsqlsyntaxerrorexception/">JdbcSQLSyntaxErrorException</a>
+            <a href="/p/podman-root/">Podman, mount path ownership become root &amp; AccessDeniedException</a>
         </h2>
     
         
         <h3 class="article-subtitle">
-            H2 資料庫測試出現 JdbcSQLSyntaxErrorException
+            Podman 上傳檔案遭遇 AccessDeniedException (mount 路徑)
         </h3>
         
     </div>
@@ -332,7 +332,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">May 01, 2022</time>
+                <time class="article-time--published">Jun 18, 2022</time>
             </div>
         
 
@@ -363,10 +363,10 @@
     
     
     <h3 id="情境">情境</h3>
-<p>這幾天在測試 H2 資料庫用於單元測試，寫了一個 LoginVaildation (可參考我的 <a class="link" href="https://github.com/Williamrightone/restful-vaildation"  target="_blank" rel="noopener"
-    >Github</a> 專案)。</p>
-<p>其中創建了 schema.sql &amp; data.sql 用於表的創建與資料的建置。</p>
-<p><strong>schema.sql</strong></p>
+<p>最近朋友在開發檔案商船的功能遇到了一些問題，內容大致是:</p>
+<p>使用 Java + Spring boot 撰寫了一個檔案上傳的 API，因為需求因素，將上傳的檔案直接存在 Host 路徑上 (Linux Server)。</p>
+<p>使用 Dockerfile 打包成 docker image，並以 podman container 運行。</p>
+<p>在本地 IDE 測試沒有問題，但經過 Deploy 後卻一直爆出 Error:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
@@ -374,45 +374,54 @@
 </span><span class="lnt">3
 </span><span class="lnt">4
 </span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="k">USER</span><span class="w"> </span><span class="p">(</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">EMAIL</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span><span class="w"> </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="p">,</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">PASSWORD</span><span class="w"> </span><span class="nb">VARCHAR</span><span class="p">(</span><span class="mi">12</span><span class="p">),</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="n">USERNAME</span><span class="w"> </span><span class="n">NVARCHAR</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span><span class="w">
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">);</span><span class="w">
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><p><strong>data.sql</strong></p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">INSERT</span><span class="w"> </span><span class="k">INTO</span><span class="w"> </span><span class="k">USER</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">(</span><span class="n">EMAIL</span><span class="p">,</span><span class="w"> </span><span class="n">PASSWORD</span><span class="p">,</span><span class="w"> </span><span class="n">USERNAME</span><span class="p">)</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="k">VALUES</span><span class="w"> 
-</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">(</span><span class="s1">&#39;willy4543@gmail.com&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">Demo1234</span><span class="p">,</span><span class="w"> </span><span class="n">William</span><span class="p">);</span><span class="w">
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><p>執行後報出 JdbcSQLSyntaxErrorException</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">Caused by: org.h2.jdbc.JdbcSQLSyntaxErrorException: Syntax error in SQL statement <span class="s2">&#34;CREATE TABLE [*]USER ( EMAIL VARCHAR(30) PRIMARY KEY, PASSWORD VARCHAR(12), USER_NAME NVARCHAR(30) )&#34;</span><span class="p">;</span> expected <span class="s2">&#34;identifier&#34;</span><span class="p">;</span>
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">java</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">file</span><span class="o">.</span><span class="na">AccessDeniedException</span><span class="o">:</span> <span class="o">/</span><span class="n">appl</span><span class="o">/</span><span class="n">data</span><span class="o">/</span><span class="n">abc</span><span class="o">.</span><span class="na">txt</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">fs</span><span class="o">.</span><span class="na">UnixException</span><span class="o">.</span><span class="na">translateToIOException</span><span class="o">(</span><span class="n">UnixException</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">90</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">fs</span><span class="o">.</span><span class="na">UnixException</span><span class="o">.</span><span class="na">rethrowAsIOException</span><span class="o">(</span><span class="n">UnixException</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">111</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">fs</span><span class="o">.</span><span class="na">UnixException</span><span class="o">.</span><span class="na">rethrowAsIOException</span><span class="o">(</span><span class="n">UnixException</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">116</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">fs</span><span class="o">.</span><span class="na">UnixFileSystemProvider</span><span class="o">.</span><span class="na">newByteChannel</span><span class="o">(</span><span class="n">UnixFileSystemProvider</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">219</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">file</span><span class="o">.</span><span class="na">spi</span><span class="o">.</span><span class="na">FileSystemProvider</span><span class="o">.</span><span class="na">newOutputStream</span><span class="o">(</span><span class="n">FileSystemProvider</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">478</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">file</span><span class="o">.</span><span class="na">Files</span><span class="o">.</span><span class="na">newOutputStream</span><span class="o">(</span><span class="n">Files</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">220</span><span class="o">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">file</span><span class="o">.</span><span class="na">Files</span><span class="o">.</span><span class="na">write</span><span class="o">(</span><span class="n">Files</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">3425</span><span class="o">)</span>
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h3 id="原因">原因</h3>
-<p>USER 在 H2 內雖然不是 Table 的保留字，但 USER 是一個保留的標誌符 (identifier)，所以 H2 資料庫會把它當作當前登錄的用戶名稱。這就會導致指令出錯，拋出錯誤訊息告知在指令中出現了無效的標誌符。</p>
+</div><h3 id="解析">解析</h3>
+<p>一般來說，container 要儲存檔案，通常會將路徑 mount 在 host 上，否則檔案會被存在 container 的路徑中；當 container 被 Remove 時，裡面的檔案會一起消失在塵埃中。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">podman run -p 8080:8080 -d -v /appl/data:/appl/data:Z a1b2c3d4
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>若是使用 <code>docker -v</code> ，預設會使用 root 權限訪問，因此在運行上不會有權限問題。然而朋友使用的是 rootless 的 podman，經過我使用 exec 進入 container 後發現 container 中的 /appl/data 資料夾 owner 竟變成 root 的了。同時也因為 host 使用 podman 的帳號在 container 中不存在，故分析要解決這個問題可以從檔案的權限與用戶的權限著手。</p>
 <h3 id="解法">解法</h3>
-<p>把 TABLE 的名稱從 USER 更改為 PROJECT_USER 即可。</p>
-<hr>
-<p>有時候這種來自小小設定的問題，似乎也只能在遇到的時候記得。</p>
+<p>第一是將 host 實體路徑的權限開放成 777 ，但這樣做會使伺服器出現潛在風險，因為任何 user 都可以任意操作這個資料夾內的檔案。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">chmod <span class="m">777</span> /appl/data
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>第二則是參考 podman 的<a class="link" href="https://github.com/containers/podman/blob/main/docs/tutorials/rootless_tutorial.md#using-volumes"  target="_blank" rel="noopener"
+    >文件</a></p>
+<p>在 podman run 時加入 <code>--userns=keep-id</code>，此時 mount 後會發現 /appl/data 的 owner 變成了 host 上執行的 username，而群組則與 container 內部預設的一致</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">podman run --userns<span class="o">=</span>keep-id -p 8080:8080 -d -v /appl/data:/appl/data:Z a1b2c3d4
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>隨後又重新調整了 dockerfile，在 dockerfile 中創建 /appl/data 路徑後，將權限修改為 775，即可正常操作。</p>
 
 </section>
 
@@ -422,6 +431,8 @@
     <section class="article-tags">
         
             <a href="/tags/exception/">Exception</a>
+        
+            <a href="/tags/ci/">CI</a>
         
     </section>
 
@@ -454,19 +465,6 @@
         <div class="flex article-list--tile">
             
                 
-<article class="">
-    <a href="/p/podman-root/">
-        
-        
-
-        <div class="article-details">
-            <h2 class="article-title">Podman, mount path ownership become root &amp; AccessDeniedException</h2>
-        </div>
-    </a>
-</article>
-
-            
-                
 <article class="has-image">
     <a href="/p/gitlab-pppd/">
         
@@ -485,6 +483,19 @@
 
         <div class="article-details">
             <h2 class="article-title">Gitlab CI, The kernel does not support PPP</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/jdbcsqlsyntaxerrorexception/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">JdbcSQLSyntaxErrorException</h2>
         </div>
     </a>
 </article>
