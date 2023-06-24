@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案'>
-<title>SonarQube Scan Spring boot project</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在 Windows Server 2019 安裝 Gitlab 並使用 Nginx Https 反向代理'>
+<title>Install Gitlab with Https on Windows Server 2019</title>
 
-<link rel='canonical' href='https://williamrightone.github.io/p/sonarqube-scanner-ubuntu-20.04/'>
+<link rel='canonical' href='https://williamrightone.github.io/p/gitlab-install-nginx/'>
 
-<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='SonarQube Scan Spring boot project'>
-<meta property='og:description' content='在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案'>
-<meta property='og:url' content='https://williamrightone.github.io/p/sonarqube-scanner-ubuntu-20.04/'>
+<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='Install Gitlab with Https on Windows Server 2019'>
+<meta property='og:description' content='在 Windows Server 2019 安裝 Gitlab 並使用 Nginx Https 反向代理'>
+<meta property='og:url' content='https://williamrightone.github.io/p/gitlab-install-nginx/'>
 <meta property='og:site_name' content='Lonely William'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='DevOps' /><meta property='article:tag' content='CI' /><meta property='article:published_time' content='2022-05-04T08:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-05-04T08:00:00&#43;00:00'/>
-<meta name="twitter:title" content="SonarQube Scan Spring boot project">
-<meta name="twitter:description" content="在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案">
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='DevOps' /><meta property='article:tag' content='Gitlab' /><meta property='article:published_time' content='2022-06-24T08:00:00&#43;00:00'/><meta property='article:modified_time' content='2022-06-24T08:00:00&#43;00:00'/><meta property='og:image' content='https://williamrightone.github.io/p/gitlab-install-nginx/gitlab-main.png' />
+<meta name="twitter:title" content="Install Gitlab with Https on Windows Server 2019">
+<meta name="twitter:description" content="在 Windows Server 2019 安裝 Gitlab 並使用 Nginx Https 反向代理"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://williamrightone.github.io/p/gitlab-install-nginx/gitlab-main.png' />
     </head>
     <body class="
     article-page
@@ -272,12 +273,13 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li><a href="#掃描-spring-boot-專案">掃描 spring boot 專案</a>
+    <li><a href="#outline">Outline</a></li>
+    <li><a href="#前言">前言</a>
       <ol>
-        <li><a href="#安裝-java--mavne-環境-須注意版本">安裝 Java &amp; mavne 環境 (須注意版本)</a></li>
-        <li><a href="#傳送原始碼-winscp">傳送原始碼 (winScp)</a></li>
-        <li><a href="#建立-project-並執行掃描">建立 Project 並執行掃描</a></li>
-        <li><a href="#審視結果與改善">審視結果與改善</a></li>
+        <li><a href="#安裝-gitlab">安裝 Gitlab</a></li>
+        <li><a href="#生成自簽憑證">生成自簽憑證</a></li>
+        <li><a href="#配置-gitlab">配置 Gitlab</a></li>
+        <li><a href="#設置-windows-server-nginx-反向代理">設置 windows server Nginx 反向代理</a></li>
       </ol>
     </li>
   </ol>
@@ -291,8 +293,20 @@
 
 
             <main class="main full-width">
-    <article class="main-article">
+    <article class="has-image main-article">
     <header class="article-header">
+        <div class="article-image">
+            <a href="/p/gitlab-install-nginx/">
+                <img src="/p/gitlab-install-nginx/gitlab-main_hue074a06ba48b5640149a226e653eaaad_8853_800x0_resize_box_3.png"
+                        srcset="/p/gitlab-install-nginx/gitlab-main_hue074a06ba48b5640149a226e653eaaad_8853_800x0_resize_box_3.png 800w, /p/gitlab-install-nginx/gitlab-main_hue074a06ba48b5640149a226e653eaaad_8853_1600x0_resize_box_3.png 1600w"
+                        width="800" 
+                        height="236" 
+                        loading="lazy"
+                        alt="Featured image of post Install Gitlab with Https on Windows Server 2019" />
+                
+            </a>
+        </div>
+    
 
     <div class="article-details">
     
@@ -307,12 +321,12 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/sonarqube-scanner-ubuntu-20.04/">SonarQube Scan Spring boot project</a>
+            <a href="/p/gitlab-install-nginx/">Install Gitlab with Https on Windows Server 2019</a>
         </h2>
     
         
         <h3 class="article-subtitle">
-            在 Ubuntu 20.04 上使用 SonarQube 掃描 Spring boot 專案
+            在 Windows Server 2019 安裝 Gitlab 並使用 Nginx Https 反向代理
         </h3>
         
     </div>
@@ -333,7 +347,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">May 04, 2022</time>
+                <time class="article-time--published">Jun 24, 2022</time>
             </div>
         
 
@@ -363,15 +377,39 @@
     <section class="article-content">
     
     
-    <h2 id="掃描-spring-boot-專案">掃描 spring boot 專案</h2>
-<p>掃描需要有 java &amp; mavne 環境，流程上需要:</p>
+    <h2 id="outline">Outline</h2>
 <ol>
-<li>將原始碼傳送到 linux 的資料夾內，可以使用 git checkout 或是用 winScp 傳送到裡面</li>
-<li>在 SonarQube 建立一個專案，獲取執行的指令(後續說明)</li>
-<li>在 pom 的位置執行指令，開始掃描</li>
-<li>在 SonarQube 瀏覽結果</li>
+<li>前言與架構</li>
+<li>在 Ubuntu 內安裝 Gitlab</li>
+<li>生成自簽憑證</li>
+<li>設置 Gitlab</li>
+<li>設置 windows server Nginx 反向代理</li>
 </ol>
-<h3 id="安裝-java--mavne-環境-須注意版本">安裝 Java &amp; mavne 環境 (須注意版本)</h3>
+<h2 id="前言">前言</h2>
+<p>最近想重啟微服務的學習計畫，決定從開發到維運通通一手包辦 (不就跟我目前的工作內容一樣嗎&hellip;)，剛好去年組了 X99 平台的伺服器一直沒用，就決定從 Gitlab 搭建開始。</p>
+<p>這次的計畫是在一台 Windows Server 上啟動數台 VM 做出 Kubernetes 集群，並搭建 Gitlab、Harbor、MinIO 等服務，同時使用 Nginx 做反向代理，架構如下。</p>
+<p><img src="/p/gitlab-install-nginx/typo.png"
+	width="923"
+	height="593"
+	srcset="/p/gitlab-install-nginx/typo_hu55d6fdf007086d24db6395558864c7f0_398687_480x0_resize_box_3.png 480w, /p/gitlab-install-nginx/typo_hu55d6fdf007086d24db6395558864c7f0_398687_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="關於微服務計畫的拓樸，請自動忽略其他還沒實作的項目"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="155"
+		data-flex-basis="373px"
+	
+></p>
+<p>這邊先列出幾個前言:</p>
+<ul>
+<li>這次 Gitlab 等 Surrounding 服務都是單機版本，未來有機會再嘗試集群版</li>
+<li>憑證生成在 VM 中，需要在 VM 內部配置，也需要在 Windows Server 的 Nginx 中配置 (其實也可以統一由 Windows Server 的 Nginx 掛載憑證)</li>
+<li>安裝 VM 部分就跳過，這裡假定我的 Windows Server IP 是 192.168.1.123，而 Gitlab host VM 的 IP 是 192.168.123.123</li>
+</ul>
+<h3 id="安裝-gitlab">安裝 Gitlab</h3>
+<p>將 Gitlab 安裝到 Ubuntu Server 20.04 上面，要記得這台 VM <code>8080 port 不能被占用</code></p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -384,40 +422,77 @@
 </span><span class="lnt"> 8
 </span><span class="lnt"> 9
 </span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1">#更新</span>
-</span></span><span class="line"><span class="cl">sudo apt update -y
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1">#更新 apt-get</span>
+</span></span><span class="line"><span class="cl">sudo apt-get update
+</span></span><span class="line"><span class="cl"><span class="c1">#安裝 openssh-server &amp; ca-certificates</span>
+</span></span><span class="line"><span class="cl">sudo apt-get install -y curl openssh-server ca-certificates
+</span></span><span class="line"><span class="cl">curl https://packages.gitlab.com/install/repositories/gitlab/gitlab-ee/script.deb.sh <span class="p">|</span> sudo bash
+</span></span><span class="line"><span class="cl"><span class="c1">#設定 url，單機版的配置在 /etc/gitlab/gitlab.rb 下修改</span>
+</span></span><span class="line"><span class="cl">sudo <span class="nv">EXTERNAL_URL</span><span class="o">=</span><span class="s2">&#34;https://my-gitlab&#34;</span> apt-get install gitlab-ee
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">#安裝 java 11</span>
-</span></span><span class="line"><span class="cl">sudo apt install openjdk-11-jdk -y
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl"><span class="c1">#安裝 maven </span>
-</span></span><span class="line"><span class="cl">sudo apt update
-</span></span><span class="line"><span class="cl">sudo apt install maven
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">java -version
-</span></span><span class="line"><span class="cl">mvn -v
+</span></span><span class="line"><span class="cl"><span class="c1">#等待安裝好後，可印出密碼</span>
+</span></span><span class="line"><span class="cl">sudo cat /etc/gitlab/initial_root_password
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>這裡要注意一下，在前一篇用 docker-compose 啟動 SonarQube 時，SonarQube 的版本和 openJdk 版本要有對應，不然在後面階段很可能會出現以下錯誤</p>
+</div><h3 id="生成自簽憑證">生成自簽憑證</h3>
+<p>下一步要生成自簽憑證，並放置到 gitlab 內</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt">1
 </span><span class="lnt">2
 </span><span class="lnt">3
 </span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> Error executing Maven.
-</span></span><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> java.lang.IllegalStateException: Unable to load cache item
-</span></span><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> Caused by: Unable to load cache item
-</span></span><span class="line"><span class="cl"><span class="o">[</span>ERROR<span class="o">]</span> Caused by: Could not initialize class com.google.inject.internal.cglib.core.<span class="nv">$MethodWrapper</span>
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl"><span class="c1"># 創建 ssl 資料夾</span>
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> /etc/gitlab
+</span></span><span class="line"><span class="cl">sudo mkdir ssl
+</span></span><span class="line"><span class="cl"><span class="nb">cd</span> ssl
+</span></span><span class="line"><span class="cl"><span class="c1"># 安裝 openssl 並生成憑證</span>
+</span></span><span class="line"><span class="cl">sudo apt-get install openssl
+</span></span><span class="line"><span class="cl">sudo openssl req -x509 -nodes -days <span class="m">3650</span> -newkey rsa:2048 -keyout my-gitlab.key -out my-gitlab.crt
 </span></span></code></pre></td></tr></table>
 </div>
-</div><p>若不小心手殘裝錯 java 版本，可以使用 <code>sudo update-alternatives --config java</code> 來更改</p>
+</div><h3 id="配置-gitlab">配置 Gitlab</h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">sudo vim gitlab.rb
+</span></span><span class="line"><span class="cl"><span class="c1"># 設定憑證 </span>
+</span></span><span class="line"><span class="cl">nginx<span class="o">[</span><span class="s1">&#39;enable&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="nb">true</span>
+</span></span><span class="line"><span class="cl">nginx<span class="o">[</span><span class="s1">&#39;ssl_certificate&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&#34;/etc/gitlab/ssl/my-gitlab.crt&#34;</span>
+</span></span><span class="line"><span class="cl">nginx<span class="o">[</span><span class="s1">&#39;ssl_certificate_key&#39;</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&#34;/etc/gitlab/ssl/my-gitlab.key&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">sudo gitlab-ctl reconfigure
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>由於是自簽憑證，需要在 windows server 的 hosts 檔案中把 ip 和 FQDN 寫進去， hosts 路徑在 <code>C:\Windows\System32\drivers\etc</code></p>
+<p>在裡面增加:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">192.168.123.123 my-gitlab
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之後遠端登入 Windows Server，即可在 Browser 上面用 https://my-gitlab 訪問 Gitlab。不過此時一切只 Run 在我們的 Windows server 上，下一步我們要在 Windows server 中配置 nginx，讓我的筆電在相同網段下可以訪問，並推送 Code。</p>
+<h3 id="設置-windows-server-nginx-反向代理">設置 windows server Nginx 反向代理</h3>
+<p>下載與安裝 Nginx，本步驟不贅述。</p>
+<p>這裡我習慣建立一個 cert 資料夾，同時要把 crt 和 key 檔案從 VM 中取出並放入，再設定 nginx.conf:</p>
 <div class="highlight"><div class="chroma">
 <table class="lntable"><tr><td class="lntd">
 <pre tabindex="0" class="chroma"><code><span class="lnt"> 1
@@ -435,58 +510,51 @@
 </span><span class="lnt">13
 </span><span class="lnt">14
 </span><span class="lnt">15
-</span><span class="lnt">16
-</span><span class="lnt">17
-</span><span class="lnt">18
-</span><span class="lnt">19
-</span><span class="lnt">20
-</span><span class="lnt">21
 </span></code></pre></td>
 <td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="line"><span class="cl">william@ubudev:~/LotteryAgentScheduler$ java -version
-</span></span><span class="line"><span class="cl">openjdk version <span class="s2">&#34;17.0.6&#34;</span> 2023-01-17
-</span></span><span class="line"><span class="cl">OpenJDK Runtime Environment <span class="o">(</span>build 17.0.6+10-Ubuntu-0ubuntu120.04.1<span class="o">)</span>
-</span></span><span class="line"><span class="cl">OpenJDK 64-Bit Server VM <span class="o">(</span>build 17.0.6+10-Ubuntu-0ubuntu120.04.1, mixed mode, sharing<span class="o">)</span>
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">http{
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">william@ubudev:~/LotteryAgentScheduler$ sudo update-alternatives --config java
-</span></span><span class="line"><span class="cl">There are <span class="m">2</span> choices <span class="k">for</span> the alternative java <span class="o">(</span>providing /usr/bin/java<span class="o">)</span>.
+</span></span><span class="line"><span class="cl">	server {
+</span></span><span class="line"><span class="cl">		listen 443 ssl;
+</span></span><span class="line"><span class="cl">		server_name my-gitlab;
+</span></span><span class="line"><span class="cl">		
+</span></span><span class="line"><span class="cl">		ssl_certificate      C:/nginx/cert/my-gitlab.crt;
+</span></span><span class="line"><span class="cl">		ssl_certificate_key  C:/nginx/cert/my-gitlab.key;
+</span></span><span class="line"><span class="cl">		
+</span></span><span class="line"><span class="cl">		location / {
+</span></span><span class="line"><span class="cl">			proxy_pass	https://my-gitlab/;
+</span></span><span class="line"><span class="cl">		}
+</span></span><span class="line"><span class="cl">	}
 </span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">  Selection    Path                                         Priority   Status
-</span></span><span class="line"><span class="cl">------------------------------------------------------------
-</span></span><span class="line"><span class="cl">* <span class="m">0</span>            /usr/lib/jvm/java-17-openjdk-amd64/bin/java   <span class="m">1711</span>      auto mode
-</span></span><span class="line"><span class="cl">  <span class="m">1</span>            /usr/lib/jvm/java-11-openjdk-amd64/bin/java   <span class="m">1111</span>      manual mode
-</span></span><span class="line"><span class="cl">  <span class="m">2</span>            /usr/lib/jvm/java-17-openjdk-amd64/bin/java   <span class="m">1711</span>      manual mode
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">Press &lt;enter&gt; to keep the current choice<span class="o">[</span>*<span class="o">]</span>, or <span class="nb">type</span> selection number: <span class="m">1</span>
-</span></span><span class="line"><span class="cl">update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/java to provide /usr/bin/java <span class="o">(</span>java<span class="o">)</span> in manual mode
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">william@ubudev:~/LotteryAgentScheduler$ java -version
-</span></span><span class="line"><span class="cl">openjdk version <span class="s2">&#34;11.0.18&#34;</span> 2023-01-17
-</span></span><span class="line"><span class="cl">OpenJDK Runtime Environment <span class="o">(</span>build 11.0.18+10-post-Ubuntu-0ubuntu120.04.1<span class="o">)</span>
-</span></span><span class="line"><span class="cl">OpenJDK 64-Bit Server VM <span class="o">(</span>build 11.0.18+10-post-Ubuntu-0ubuntu120.04.1, mixed mode, sharing<span class="o">)</span>
+</span></span><span class="line"><span class="cl">}
 </span></span></code></pre></td></tr></table>
 </div>
-</div><h3 id="傳送原始碼-winscp">傳送原始碼 (winScp)</h3>
-<p>次步驟亦可使用 git checkout 程式碼，之後整合 Gitlab ci 時會再開一篇</p>
-<p>為求方便，這裡使用 MobaXterm 連線到 ubuntu 內，在 /home/{userName}/ 下把專案拉進去 (事實上就是 scp)</p>
-<h3 id="建立-project-並執行掃描">建立 Project 並執行掃描</h3>
-<ol>
-<li>登入 SonarQube，點選 add Project =&gt; Manually</li>
-<li>輸入 Project key (應用於生成 token) 和 Display name</li>
-<li>Provide a token: 用於識別個人身分，可以建立新的或使用舊的
-<ul>
-<li>The token is used to identify you when an analysis is performed.</li>
-</ul>
-</li>
-<li>若選擇生成，記得紀錄 token，並點選 continue</li>
-<li>Run analysis on your project: 點選 Maven</li>
-<li>此時會生成一組指令，將其複製</li>
-<li>連線到 linux 內，cd 到 /home/{userName}/{projectName} 中，要與 pom 位置相同</li>
-<li>貼上指令執行掃描</li>
-<li>完成後即可在 Web 內看到結果</li>
-</ol>
-<h3 id="審視結果與改善">審視結果與改善</h3>
-<p>(更新中)</p>
+</div><p>下一步到 windows server 搜尋欄查詢 <code>具有進階安全性的 windows defender 防火牆</code>，點選輸入規則，在右側點選新增規則，選擇連接埠，在其中輸入 443 port 開放。</p>
+<p>最後，在我自己的筆電上也需要在hosts 檔案中把 ip 和 FQDN 寫進去， hosts 路徑同樣在 <code>C:\Windows\System32\drivers\etc</code></p>
+<p>在裡面增加:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">192.168.1.123 my-gitlab
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>之後，就能在我的筆電上連線到 Windows Server 中 VM 內的 Gitlab 了。</p>
+<p><img src="/p/gitlab-install-nginx/gitlab-page.png"
+	width="1051"
+	height="479"
+	srcset="/p/gitlab-install-nginx/gitlab-page_hud8981e1554666fc5c5f4481e4398424e_71537_480x0_resize_box_3.png 480w, /p/gitlab-install-nginx/gitlab-page_hud8981e1554666fc5c5f4481e4398424e_71537_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="終於看到畫面啦~~"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="219"
+		data-flex-basis="526px"
+	
+></p>
 
 </section>
 
@@ -497,7 +565,7 @@
         
             <a href="/tags/devops/">DevOps</a>
         
-            <a href="/tags/ci/">CI</a>
+            <a href="/tags/gitlab/">Gitlab</a>
         
     </section>
 
@@ -530,6 +598,19 @@
         <div class="flex article-list--tile">
             
                 
+<article class="">
+    <a href="/p/sonarqube-scanner-ubuntu-20.04/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">SonarQube Scan Spring boot project</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
 <article class="has-image">
     <a href="/p/sonarqube-install-ubuntu-20.04/">
         
@@ -548,56 +629,6 @@
 
         <div class="article-details">
             <h2 class="article-title">SonarQube Ubuntu 20.04 installation</h2>
-        </div>
-    </a>
-</article>
-
-            
-                
-<article class="has-image">
-    <a href="/p/gitlab-install-nginx/">
-        
-        
-            <div class="article-image">
-                <img src="/p/gitlab-install-nginx/gitlab-main.7c1019bf67908fa336a28e9c14de8f93_hue074a06ba48b5640149a226e653eaaad_8853_250x150_fill_box_smart1_3.png" 
-                        width="250" 
-                        height="150" 
-                        loading="lazy"
-                        alt="Featured image of post Install Gitlab with Https on Windows Server 2019"
-                        data-key="gitlab-install-nginx" 
-                        data-hash="md5-fBAZv2eQj6M2oo6cFN6Pkw==">
-                
-            </div>
-        
-
-        <div class="article-details">
-            <h2 class="article-title">Install Gitlab with Https on Windows Server 2019</h2>
-        </div>
-    </a>
-</article>
-
-            
-                
-<article class="">
-    <a href="/p/activemq-install-ubuntu-20.04/">
-        
-        
-
-        <div class="article-details">
-            <h2 class="article-title">ActiveMq Ubuntu 20.04 installation</h2>
-        </div>
-    </a>
-</article>
-
-            
-                
-<article class="">
-    <a href="/p/rabbitmq-install-ubuntu-20.04/">
-        
-        
-
-        <div class="article-details">
-            <h2 class="article-title">RabbitMq Ubuntu 20.04 installation</h2>
         </div>
     </a>
 </article>
