@@ -6,10 +6,10 @@
         <description>Recent content in DevOps on Lonely William</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
-        <lastBuildDate>Fri, 24 Jun 2022 08:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/tags/devops/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sat, 24 Jun 2023 08:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/tags/devops/index.xml" rel="self" type="application/rss+xml" /><item>
         <title>Install Gitlab with Https on Windows Server 2019</title>
         <link>https://williamrightone.github.io/p/gitlab-install-nginx/</link>
-        <pubDate>Fri, 24 Jun 2022 08:00:00 +0000</pubDate>
+        <pubDate>Sat, 24 Jun 2023 08:00:00 +0000</pubDate>
         
         <guid>https://williamrightone.github.io/p/gitlab-install-nginx/</guid>
         <description>&lt;img src="https://williamrightone.github.io/p/gitlab-install-nginx/gitlab-main.png" alt="Featured image of post Install Gitlab with Https on Windows Server 2019" /&gt;&lt;h2 id=&#34;outline&#34;&gt;Outline&lt;/h2&gt;
@@ -195,7 +195,7 @@
         <item>
         <title>ActiveMq Ubuntu 20.04 installation</title>
         <link>https://williamrightone.github.io/p/activemq-install-ubuntu-20.04/</link>
-        <pubDate>Tue, 10 May 2022 08:00:00 +0000</pubDate>
+        <pubDate>Wed, 10 May 2023 08:00:00 +0000</pubDate>
         
         <guid>https://williamrightone.github.io/p/activemq-install-ubuntu-20.04/</guid>
         <description>&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
@@ -282,7 +282,7 @@
         <item>
         <title>SonarQube Scan Spring boot project</title>
         <link>https://williamrightone.github.io/p/sonarqube-scanner-ubuntu-20.04/</link>
-        <pubDate>Wed, 04 May 2022 08:00:00 +0000</pubDate>
+        <pubDate>Thu, 04 May 2023 08:00:00 +0000</pubDate>
         
         <guid>https://williamrightone.github.io/p/sonarqube-scanner-ubuntu-20.04/</guid>
         <description>&lt;h2 id=&#34;掃描-spring-boot-專案&#34;&gt;掃描 spring boot 專案&lt;/h2&gt;
@@ -414,7 +414,7 @@
         <item>
         <title>RabbitMq Ubuntu 20.04 installation</title>
         <link>https://williamrightone.github.io/p/rabbitmq-install-ubuntu-20.04/</link>
-        <pubDate>Tue, 03 May 2022 08:00:00 +0000</pubDate>
+        <pubDate>Wed, 03 May 2023 08:00:00 +0000</pubDate>
         
         <guid>https://williamrightone.github.io/p/rabbitmq-install-ubuntu-20.04/</guid>
         <description>&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
@@ -500,7 +500,7 @@
         <item>
         <title>SonarQube Ubuntu 20.04 installation</title>
         <link>https://williamrightone.github.io/p/sonarqube-install-ubuntu-20.04/</link>
-        <pubDate>Sun, 01 May 2022 08:00:00 +0000</pubDate>
+        <pubDate>Mon, 01 May 2023 08:00:00 +0000</pubDate>
         
         <guid>https://williamrightone.github.io/p/sonarqube-install-ubuntu-20.04/</guid>
         <description>&lt;img src="https://williamrightone.github.io/p/sonarqube-install-ubuntu-20.04/sonarqube.png" alt="Featured image of post SonarQube Ubuntu 20.04 installation" /&gt;&lt;h3 id=&#34;前言&#34;&gt;前言&lt;/h3&gt;
