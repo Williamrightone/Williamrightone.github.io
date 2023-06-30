@@ -6,7 +6,21 @@
         <description>Recent content on Lonely William</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
-        <lastBuildDate>Sat, 24 Jun 2023 08:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Thu, 29 Jun 2023 16:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>DevOps Taiwan Meetup - BizDevOps</title>
+        <link>https://williamrightone.github.io/p/devops-day-52/</link>
+        <pubDate>Thu, 29 Jun 2023 16:00:00 +0000</pubDate>
+        
+        <guid>https://williamrightone.github.io/p/devops-day-52/</guid>
+        <description>&lt;img src="https://williamrightone.github.io/p/devops-day-52/devopsday52.jpg" alt="Featured image of post DevOps Taiwan Meetup - BizDevOps" /&gt;&lt;p&gt;加入 DevOps Taiwan 社團也快兩年了，今天卻是第一次參與線下會議，聽講 BizDevOps 和 Effective DevOps。活動資訊從 Facebook 社團接收，在 KKTIX 購票 (免費)，地點在台肥大樓 C2。&lt;/p&gt;
+&lt;p&gt;關於 BizDevOps 主題，核心在探討 &lt;code&gt;如何防止在 SDLC 中，因情境與領域的缺損導致無法實踐交付價值&lt;/code&gt;，主講者 Augustin 用一個範例說明: 當 BA 或是 Sales 有 sense 到好的商業契機，並與 PM 分享，PM 再將這些目標與工程師討論，最後放進 Backlog 內在最近一期的 Sprint 中執行，同時假設上述是在有正常的 Scrum 運行，CICD Pipeline 沒有漏水的情況(真是貼切的形容)。&lt;/p&gt;
+&lt;p&gt;然而常常會遇到功能延遲上線，或是上線後沒有達到預期的成果 (使用量或評價等)，其原因就是在從需求到產品 (功能，或乾脆稱對於客戶有價值的 something) 的過程中，會需要多個角色的協作，而在這個過程中，&lt;code&gt;因情境與領域的缺損會讓交付的成果逐漸偏離&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;這一部份我是滿認同的，而且就像主講者自己說的，因為企業的文化，限制，交付時間等，有時我們的確是為了 Delivery 而 Delivery；這裡主講者提到在每個階段最好都要有領域專家 (通常還是 PM 或 BA 的角色)，以確保在各階段因為在 Domain Knowledge 的差異造成資訊缺損。&lt;/p&gt;
+&lt;p&gt;第二部分是 Effective DevOps，主講者 Tim 分享了在 TSMC 做 IT soultion 的經驗，其中有提到一點是他們做了非常多的自動化，但這些成果就像各種形狀大小不一的積木一樣，無法累積與整合，這就讓我想到前陣子工作面臨的狀況，為了進行 data migration，我們 team 用了 shell script、spring bath jar 等等種種的工具去完成 (包含我自己還研究了 RunDeck)，雖然的確可以達到 &amp;ldquo;各單位&amp;rdquo; 要完成的目的，但對於整個 data migration 流程整合卻是一場災難。終歸來說，是當這個 data migration 的需求轉交到工程師時做的時候，結局就已經定下了。&lt;/p&gt;
+&lt;p&gt;整體來說很有收穫，講者也分享了很多令人會心一笑的案例，例如資訊系統上線了，用戶提需求說能不能維持用 Excel，然後系統去讀取 Excel 內的資料&amp;hellip;(跟之前我做政府的會計系統一模一樣)，改變用戶的習慣，某些時候還是要依靠 Top-down (例如公司政策等) 去實施。&lt;/p&gt;
+</description>
+        </item>
+        <item>
         <title>Install Gitlab with Https on Windows Server 2019</title>
         <link>https://williamrightone.github.io/p/gitlab-install-nginx/</link>
         <pubDate>Sat, 24 Jun 2023 08:00:00 +0000</pubDate>
