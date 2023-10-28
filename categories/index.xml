@@ -6,7 +6,15 @@
         <description>Recent content in Categories on Lonely William</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
-        <lastBuildDate>Sat, 21 Oct 2023 11:20:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Fri, 27 Oct 2023 16:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/categories/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>Chit Chat</title>
+        <link>https://williamrightone.github.io/categories/chitchat/</link>
+        <pubDate>Fri, 27 Oct 2023 16:00:00 +0000</pubDate>
+        
+        <guid>https://williamrightone.github.io/categories/chitchat/</guid>
+        <description>&lt;img src="https://williamrightone.github.io/categories/chitchat/thinking-foot.png" alt="Featured image of post Chit Chat" /&gt;</description>
+        </item>
+        <item>
         <title>Exception</title>
         <link>https://williamrightone.github.io/categories/exception/</link>
         <pubDate>Sat, 21 Oct 2023 11:20:00 +0000</pubDate>
@@ -29,14 +37,6 @@
         
         <guid>https://williamrightone.github.io/categories/development/</guid>
         <description>&lt;img src="https://williamrightone.github.io/categories/development/devMain.jpg" alt="Featured image of post Development" /&gt;</description>
-        </item>
-        <item>
-        <title>Chit Chat</title>
-        <link>https://williamrightone.github.io/categories/chitchat/</link>
-        <pubDate>Thu, 29 Jun 2023 16:00:00 +0000</pubDate>
-        
-        <guid>https://williamrightone.github.io/categories/chitchat/</guid>
-        <description>&lt;img src="https://williamrightone.github.io/categories/chitchat/thinking-foot.png" alt="Featured image of post Chit Chat" /&gt;</description>
         </item>
         <item>
         <title>Linux</title>
