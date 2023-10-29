@@ -1,18 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
     <head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='在 Windows 下快速啟動一個 Spring boot &#43; MSSQL 測試專案'>
-<title>Spring Boot &#43; MSSQL Quick Starter (Windows)</title>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Rising Star 專案第一回 - 打造 CI Flow 與 SDLC'>
+<title>Rstar Project, SDLC to CI</title>
 
-<link rel='canonical' href='https://williamrightone.github.io/p/quickstart/'>
+<link rel='canonical' href='https://williamrightone.github.io/p/rstar-1/'>
 
-<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='Spring Boot &#43; MSSQL Quick Starter (Windows)'>
-<meta property='og:description' content='在 Windows 下快速啟動一個 Spring boot &#43; MSSQL 測試專案'>
-<meta property='og:url' content='https://williamrightone.github.io/p/quickstart/'>
+<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='Rstar Project, SDLC to CI'>
+<meta property='og:description' content='Rising Star 專案第一回 - 打造 CI Flow 與 SDLC'>
+<meta property='og:url' content='https://williamrightone.github.io/p/rstar-1/'>
 <meta property='og:site_name' content='Lonely William'>
-<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Spring Boot' /><meta property='article:published_time' content='2023-07-01T16:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-07-01T16:00:00&#43;00:00'/>
-<meta name="twitter:title" content="Spring Boot &#43; MSSQL Quick Starter (Windows)">
-<meta name="twitter:description" content="在 Windows 下快速啟動一個 Spring boot &#43; MSSQL 測試專案">
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Spring Boot' /><meta property='article:tag' content='DevOps' /><meta property='article:published_time' content='2023-10-28T11:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-10-28T11:00:00&#43;00:00'/><meta property='og:image' content='https://williamrightone.github.io/p/rstar-1/Rstar.png' />
+<meta name="twitter:title" content="Rstar Project, SDLC to CI">
+<meta name="twitter:description" content="Rising Star 專案第一回 - 打造 CI Flow 與 SDLC"><meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content='https://williamrightone.github.io/p/rstar-1/Rstar.png' />
     </head>
     <body class="
     article-page
@@ -272,11 +273,19 @@
         <div class="widget--toc">
             <nav id="TableOfContents">
   <ol>
-    <li><a href="#前言">前言</a></li>
-    <li><a href="#建立-ms-sql-container">建立 MS SQL Container</a></li>
-    <li><a href="#dbeaber-建立連線">DBeaber 建立連線</a></li>
-    <li><a href="#建立-spring-boot-專案">建立 Spring boot 專案</a></li>
-    <li><a href="#applicationproperties">application.properties</a></li>
+    <li><a href="#前言">前言</a>
+      <ol>
+        <li><a href="#rstar-簡介">Rstar 簡介</a></li>
+      </ol>
+    </li>
+    <li><a href="#rstar-架構">Rstar 架構</a>
+      <ol>
+        <li><a href="#各服務與-api">各服務與 API</a></li>
+        <li><a href="#infrastructure">Infrastructure</a></li>
+        <li><a href="#sdlc---ci">SDLC - CI</a></li>
+      </ol>
+    </li>
+    <li><a href="#結語">結語</a></li>
   </ol>
 </nav>
         </div>
@@ -288,8 +297,20 @@
 
 
             <main class="main full-width">
-    <article class="main-article">
+    <article class="has-image main-article">
     <header class="article-header">
+        <div class="article-image">
+            <a href="/p/rstar-1/">
+                <img src="/p/rstar-1/Rstar_hu6649bd10bf42365a0ee4786166786b4f_513095_800x0_resize_box_3.png"
+                        srcset="/p/rstar-1/Rstar_hu6649bd10bf42365a0ee4786166786b4f_513095_800x0_resize_box_3.png 800w, /p/rstar-1/Rstar_hu6649bd10bf42365a0ee4786166786b4f_513095_1600x0_resize_box_3.png 1600w"
+                        width="800" 
+                        height="219" 
+                        loading="lazy"
+                        alt="Featured image of post Rstar Project, SDLC to CI" />
+                
+            </a>
+        </div>
+    
 
     <div class="article-details">
     
@@ -304,12 +325,12 @@
 
     <div class="article-title-wrapper">
         <h2 class="article-title">
-            <a href="/p/quickstart/">Spring Boot &#43; MSSQL Quick Starter (Windows)</a>
+            <a href="/p/rstar-1/">Rstar Project, SDLC to CI</a>
         </h2>
     
         
         <h3 class="article-subtitle">
-            在 Windows 下快速啟動一個 Spring boot &#43; MSSQL 測試專案
+            Rising Star 專案第一回 - 打造 CI Flow 與 SDLC
         </h3>
         
     </div>
@@ -330,7 +351,7 @@
   <path d="M3 11h16" />
   <path d="M18 16.496v1.504l1 1" />
 </svg>
-                <time class="article-time--published">Jul 01, 2023</time>
+                <time class="article-time--published">Oct 28, 2023</time>
             </div>
         
 
@@ -345,7 +366,7 @@
 
 
                 <time class="article-time--reading">
-                    1 minute read
+                    2 minute read
                 </time>
             </div>
         
@@ -361,92 +382,97 @@
     
     
     <h2 id="前言">前言</h2>
-<p>今天帶大家快速構建一個 Spring boot 專案，並且用 Docker 在 Windows 上面啟動一個測試用的 MySQL，並且用 DBeaver IDE 連線。</p>
-<hr>
-<p>近期公司的新人問我怎麼會這麼多東西，記得前公司的協理在帶我的時候說 <code>Always get your hand dirty</code>，不過我得幫他補一句 <code>While you are not Manager</code> &hellip; OK 扯遠了。</p>
-<p>最主要是針對一些問題我們要能快速的測試，而測試勢必要有環境，如做一些 Container 或 Middleware 的測試要有台 Linux VM。而一些 API 或功能的測試通常也會需要一個測試專案，剛好最近要來二刷跟實作 Spring Security，就來重新建置與紀錄。</p>
-<h2 id="建立-ms-sql-container">建立 MS SQL Container</h2>
-<p>首先確保你的電腦上已安裝並啟動了 Docker Desktop，安裝方法這裡就不贅述了。</p>
-<p>接著打開 cmd，輸入:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">docker run -e ACCEPT_EULA=Y -e MSSQL_PID=&#34;Developer&#34; -e MSSQL_SA_PASSWORD=&#34;Passw0rd123&#34; -e MSSQL_TCP_PORT=1433 -p 1433:1433 -d mcr.microsoft.com/mssql/server:2022-latest
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>輸入後會開始拉取 images，並且啟動，關於 container 的狀態可以在 Docker Desktop 裡面觀察。</p>
-<h2 id="dbeaber-建立連線">DBeaber 建立連線</h2>
-<p>在 DBeaber 內點選新建連結 (插頭跟 + 號的 icon)，選擇 SQL Server，設定都留預設，要注意是 Host 選 localhost，Database/Schema 留預設 Master。帳號輸入 sa，密碼則是上面啟動 container 時的密碼。</p>
-<p>MS SQL 用 container 會預設建立 sa 這個用戶，連線後可以再建立新的用戶與 policy。紀硯連線後點選 Master，在裡面右鍵點選建立新的 DB，這裡我命名為 JAVA_TEST。</p>
-<h2 id="建立-spring-boot-專案">建立 Spring boot 專案</h2>
-<p>建立專案的流程也不贅述，主要記得需要引入 Web 和 mssql 的依賴:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
-</span><span class="lnt"> 2
-</span><span class="lnt"> 3
-</span><span class="lnt"> 4
-</span><span class="lnt"> 5
-</span><span class="lnt"> 6
-</span><span class="lnt"> 7
-</span><span class="lnt"> 8
-</span><span class="lnt"> 9
-</span><span class="lnt">10
-</span><span class="lnt">11
-</span><span class="lnt">12
-</span><span class="lnt">13
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">&lt;dependency&gt;
-</span></span><span class="line"><span class="cl">	&lt;groupId&gt;com.microsoft.sqlserver&lt;/groupId&gt;
-</span></span><span class="line"><span class="cl">	&lt;artifactId&gt;mssql-jdbc&lt;/artifactId&gt;
-</span></span><span class="line"><span class="cl">	&lt;scope&gt;runtime&lt;/scope&gt;
-</span></span><span class="line"><span class="cl">&lt;/dependency&gt;
-</span></span><span class="line"><span class="cl">&lt;dependency&gt;
-</span></span><span class="line"><span class="cl">	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-</span></span><span class="line"><span class="cl">	&lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
-</span></span><span class="line"><span class="cl">&lt;/dependency&gt;
-</span></span><span class="line"><span class="cl">&lt;dependency&gt;
-</span></span><span class="line"><span class="cl">	&lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-</span></span><span class="line"><span class="cl">	&lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-</span></span><span class="line"><span class="cl">&lt;/dependency&gt;
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="applicationproperties">application.properties</h2>
-<p>這裡就設定 spring boot 與 mssql 基本的連線資訊</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span><span class="lnt">2
-</span><span class="lnt">3
-</span><span class="lnt">4
-</span><span class="lnt">5
-</span><span class="lnt">6
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">spring.datasource.url=jdbc:sqlserver://localhost:1433;DatabaseName=JAVA_TEST;encrypt=false;
-</span></span><span class="line"><span class="cl">spring.datasource.username=sa
-</span></span><span class="line"><span class="cl">spring.datasource.password=Passw0rd123
-</span></span><span class="line"><span class="cl">
-</span></span><span class="line"><span class="cl">spring.jpa.hibernate.ddl-auto= update
-</span></span><span class="line"><span class="cl">spring.jpa.hibernate.dialect: org.hibernate.dialect.SQLServer2012Dialect
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>關於 <code>encrypt=false;</code> 是 JDBC 10.2 版本後會預設 <code>Default encrypt to true</code>，若沒有加會導致啟動的時候爆出錯誤(我怎麼會知道呢?)，詳情可以看<a class="link" href="https://learn.microsoft.com/en-us/sql/connect/jdbc/release-notes-for-the-jdbc-driver?view=sql-server-ver15#changes-in-102"  target="_blank" rel="noopener"
-    >文件</a>:</p>
-<div class="highlight"><div class="chroma">
-<table class="lntable"><tr><td class="lntd">
-<pre tabindex="0" class="chroma"><code><span class="lnt">1
-</span></code></pre></td>
-<td class="lntd">
-<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">com.microsoft.sqlserver.jdbc.SQLServerException: 驅動程式無法使用安全通訊端層 (SSL) 加密建立與 SQL Server 的安全連接。錯誤: &#34;PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target&#34;。
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>基本上就可以啟動專案測試看看連線狀態了，下一步就能逐一去實踐 Repository 的 API 了。</p>
-<p>如果想要了解更多相關的內容也歡迎瀏覽我 2022 年 IT 鐵人賽的<a class="link" href="https://ithelp.ithome.com.tw/articles/10307859"  target="_blank" rel="noopener"
-    >文章</a>，</p>
+<p>之前在台灣龍頭 SI 公司 (號稱啦) 的時候，組織內部有很多的 KnowHow，我們通常會把他稱做 Seed Project 或是 Seed Model，也就是所謂的啟動專案。當後續有新的專案或同質產品要推廣的時候，團隊能用最快的時間搭建出開發平台。</p>
+<p>雖然已經不在那裏服務，但仍記得當時帶我的協理說 <code>Always get your hand dirty</code>，現在也近 2023 年末，就想把目前有的 KnowHow 做個整理。</p>
+<p>剛好今年 12 月要考 CKA，就趁最近把一套微服務的 Side Project 建立起來，同時學習與應用部署。今天這篇就對 Rising Star Project 做一個基礎介紹，並更新到 CI 的部分 (已完成)。</p>
+<h3 id="rstar-簡介">Rstar 簡介</h3>
+<p>Rising Star (Rstar) 是一個微服務啟動專案，核心是一套 Login API，並包含基礎 Authentication &amp; Authorization 功能。同時也能夠記錄用戶軌跡與系統 HIGH Level Exception。</p>
+<p>Rstar 亦包刮軟體開發生命週期 (SDLC) 的各項步驟，如 Branching Strategy、Flow Management、自動化的 Pipeline、CICD、Unit Test、Security 等。</p>
+<h2 id="rstar-架構">Rstar 架構</h2>
+<h3 id="各服務與-api">各服務與 API</h3>
+<p>Rstar 目前由 2 個 Frontend 和 5 個 Frontend 組成，服務間以 RESTful API 進行通訊，Middleware 包含 RabbitMQ，Redis 和 MS-SQL。</p>
+<p>Backend 使用 Java 17 &amp; Spring boot 3.1.5</p>
+<p><img src="/p/rstar-1/RstarAPI.png"
+	width="1663"
+	height="850"
+	srcset="/p/rstar-1/RstarAPI_hu67e5d453f6da9587539bd0f2c98e94af_245576_480x0_resize_box_3.png 480w, /p/rstar-1/RstarAPI_hu67e5d453f6da9587539bd0f2c98e94af_245576_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="RstarAPI"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="195"
+		data-flex-basis="469px"
+	
+></p>
+<p>各服務如下:</p>
+<ul>
+<li>Rstar Web: 供 End-User Web Base 操作畫面</li>
+<li>Rstar-Backend: 服務 Rstar Web 的 Backend for Frontend，進行權限驗證、Token 生成與 End-User 的 API 轉發</li>
+<li>User-Service: 處理用戶相關功能</li>
+<li>Auth-Service: 處理權限相關功能</li>
+<li>Analytic-Service: 紀錄系統 Log、用戶軌跡等服務</li>
+<li>Admin Web: 後台管理員使用的 Web Base 操作畫面</li>
+<li>Auth-Backend: 服務 Admin Web 的 Backend for Frontend，進行權限驗證、Token 生成與 Admin-User 的 API 轉發</li>
+</ul>
+<p>已完成的功能有:</p>
+<ul>
+<li>User Login 與權限驗證 (儲存於 Redis)</li>
+<li>Access/Refresh Token 生成</li>
+<li>Exception handling &amp; Record</li>
+</ul>
+<p>後續規劃把 Spring Security Authorization 以及 Global Exception 這兩塊獨立出來做成 Maven Project，儲存到自建的 Nexus 內供其他專案引用。</p>
+<h3 id="infrastructure">Infrastructure</h3>
+<p>目前是在我房間的 X99 平台上架起 On-Premises Cluster，架構如下:</p>
+<p><img src="/p/rstar-1/infra.png"
+	width="1292"
+	height="824"
+	srcset="/p/rstar-1/infra_huddbe2a2fd3ba9b620c60045adf58d5b9_763013_480x0_resize_box_3.png 480w, /p/rstar-1/infra_huddbe2a2fd3ba9b620c60045adf58d5b9_763013_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="Rstar Infra"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="156"
+		data-flex-basis="376px"
+	
+></p>
+<p>X99 平台的主系統安裝 Windows server 2019，並在裡面以 VMware 建立多台 VM，包含 Gitlab、SonarQube、DependencyTrack、Harbor 以及一個 Kubernetes 集群，來完成整個 CICD 與 Auto Pipeline。</p>
+<p>由於在內網環境，就模擬開發人員開啟 VPN 連線到 Data Center；在 Windows server 中開放防火牆的特定 port，並利用 Nginx 做反向代理，而 Security 的服務則不對外開放，僅能用遠端連線進行檢視與管理。</p>
+<p>後續可以再依照需求建立其他的中間建，例如 S3 base 的 MinIO 做 File Server。</p>
+<h3 id="sdlc---ci">SDLC - CI</h3>
+<p>目前的進度剛完成到 Docker-compose，當前的 CI flow 足夠讓 Developer 能在自己的電腦上將所有專案以 Docker container 的方式將啟動，可以針對需要進行開發的服務以 IDE 取代 Container 進行開發。</p>
+<p><img src="/p/rstar-1/CI.png"
+	width="1566"
+	height="692"
+	srcset="/p/rstar-1/CI_huecaaf0a6acf8af984db583240f73fb48_78386_480x0_resize_box_3.png 480w, /p/rstar-1/CI_huecaaf0a6acf8af984db583240f73fb48_78386_1024x0_resize_box_3.png 1024w"
+	loading="lazy"
+	
+		alt="CI Flow"
+	
+	
+		class="gallery-image" 
+		data-flex-grow="226"
+		data-flex-basis="543px"
+	
+></p>
+<p>在 Branching Strategy 上，由於只有我一個人和一個環境 (嗚嗚嗚&hellip;孤單威廉)，故選用 Github flow，並搭配 Gitlab-ci，開發流程如下:</p>
+<ol>
+<li>PG 獲得 Ticket 與 Spec (自己出然後 Assign 給自己&hellip;)</li>
+<li>Checkout Master，建立 Feature 分支並在上面進行開發</li>
+<li>利用 docker-compose 在本地完成測試</li>
+<li>commit &amp; push Feature Branch</li>
+<li>Pipelin go through Security Stage，如 SonarQube、DependencyTrack、Unit Test，沒通過或是未達 Quality Gate 則無法發起 Merge Request</li>
+<li>發起 Merge Request，由 Senior Code Review &amp; Merge</li>
+<li>Team Lead tag version，Pipeline Build &amp; push Docker Images</li>
+<li>PG 利用 docker-compose 拉取 image，重複 Step 1</li>
+</ol>
+<h2 id="結語">結語</h2>
+<p>以上的流程大概是從 9 月開始規劃與建置，包含 Infra 的設定與個服務的開發，基礎的設施與 Pipeline 已經達到能讓小團隊開發的規模，而針對 Dev 的測試環境或許也能夠先利用 docker-compose 在 VM 上建立共同測試環境，讓 SA 與 QA 進去塞 Dummy data 並測試。另外也預期整合 Postman Runner 到 Gitlab CI 中，對測試環境做自動化測試。</p>
+<p>這樣一整理完，其實還是有非常多的事情要做啊!</p>
+<p>今天才終於架起來 K8S 的 Cluster。過去的 Deployment 使用比較多的是 publish over ssh，這次預計使用 Argo CD 與 Helm 進行部署。CAK 拖了快一年才要考，最近專案時程又很趕，年末又有觀察 JD 的習慣，看來又要更晚睡了&hellip;。</p>
 
 </section>
 
@@ -456,6 +482,8 @@
     <section class="article-tags">
         
             <a href="/tags/spring-boot/">Spring Boot</a>
+        
+            <a href="/tags/devops/">DevOps</a>
         
     </section>
 
@@ -488,24 +516,13 @@
         <div class="flex article-list--tile">
             
                 
-<article class="has-image">
-    <a href="/p/rstar-1/">
+<article class="">
+    <a href="/p/quickstart/">
         
-        
-            <div class="article-image">
-                <img src="/p/rstar-1/Rstar.f27f090e76590cbb0f834ba8c6dce86c_hu6649bd10bf42365a0ee4786166786b4f_513095_250x150_fill_box_smart1_3.png" 
-                        width="250" 
-                        height="150" 
-                        loading="lazy"
-                        alt="Featured image of post Rstar Project, SDLC to CI"
-                        data-key="rstar-1" 
-                        data-hash="md5-8n8JDnZZDLsPg0uoxtzobA==">
-                
-            </div>
         
 
         <div class="article-details">
-            <h2 class="article-title">Rstar Project, SDLC to CI</h2>
+            <h2 class="article-title">Spring Boot &#43; MSSQL Quick Starter (Windows)</h2>
         </div>
     </a>
 </article>

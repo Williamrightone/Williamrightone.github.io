@@ -6,7 +6,107 @@
         <description>Recent content in DevOps on Lonely William</description>
         <generator>Hugo -- gohugo.io</generator>
         <language>en</language>
-        <lastBuildDate>Fri, 27 Oct 2023 16:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/tags/devops/index.xml" rel="self" type="application/rss+xml" /><item>
+        <lastBuildDate>Sat, 28 Oct 2023 11:00:00 +0000</lastBuildDate><atom:link href="https://williamrightone.github.io/tags/devops/index.xml" rel="self" type="application/rss+xml" /><item>
+        <title>Rstar Project, SDLC to CI</title>
+        <link>https://williamrightone.github.io/p/rstar-1/</link>
+        <pubDate>Sat, 28 Oct 2023 11:00:00 +0000</pubDate>
+        
+        <guid>https://williamrightone.github.io/p/rstar-1/</guid>
+        <description>&lt;img src="https://williamrightone.github.io/p/rstar-1/Rstar.png" alt="Featured image of post Rstar Project, SDLC to CI" /&gt;&lt;h2 id=&#34;前言&#34;&gt;前言&lt;/h2&gt;
+&lt;p&gt;之前在台灣龍頭 SI 公司 (號稱啦) 的時候，組織內部有很多的 KnowHow，我們通常會把他稱做 Seed Project 或是 Seed Model，也就是所謂的啟動專案。當後續有新的專案或同質產品要推廣的時候，團隊能用最快的時間搭建出開發平台。&lt;/p&gt;
+&lt;p&gt;雖然已經不在那裏服務，但仍記得當時帶我的協理說 &lt;code&gt;Always get your hand dirty&lt;/code&gt;，現在也近 2023 年末，就想把目前有的 KnowHow 做個整理。&lt;/p&gt;
+&lt;p&gt;剛好今年 12 月要考 CKA，就趁最近把一套微服務的 Side Project 建立起來，同時學習與應用部署。今天這篇就對 Rising Star Project 做一個基礎介紹，並更新到 CI 的部分 (已完成)。&lt;/p&gt;
+&lt;h3 id=&#34;rstar-簡介&#34;&gt;Rstar 簡介&lt;/h3&gt;
+&lt;p&gt;Rising Star (Rstar) 是一個微服務啟動專案，核心是一套 Login API，並包含基礎 Authentication &amp;amp; Authorization 功能。同時也能夠記錄用戶軌跡與系統 HIGH Level Exception。&lt;/p&gt;
+&lt;p&gt;Rstar 亦包刮軟體開發生命週期 (SDLC) 的各項步驟，如 Branching Strategy、Flow Management、自動化的 Pipeline、CICD、Unit Test、Security 等。&lt;/p&gt;
+&lt;h2 id=&#34;rstar-架構&#34;&gt;Rstar 架構&lt;/h2&gt;
+&lt;h3 id=&#34;各服務與-api&#34;&gt;各服務與 API&lt;/h3&gt;
+&lt;p&gt;Rstar 目前由 2 個 Frontend 和 5 個 Frontend 組成，服務間以 RESTful API 進行通訊，Middleware 包含 RabbitMQ，Redis 和 MS-SQL。&lt;/p&gt;
+&lt;p&gt;Backend 使用 Java 17 &amp;amp; Spring boot 3.1.5&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://williamrightone.github.io/p/rstar-1/RstarAPI.png&#34;
+	width=&#34;1663&#34;
+	height=&#34;850&#34;
+	srcset=&#34;https://williamrightone.github.io/p/rstar-1/RstarAPI_hu67e5d453f6da9587539bd0f2c98e94af_245576_480x0_resize_box_3.png 480w, https://williamrightone.github.io/p/rstar-1/RstarAPI_hu67e5d453f6da9587539bd0f2c98e94af_245576_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;RstarAPI&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;195&#34;
+		data-flex-basis=&#34;469px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;各服務如下:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Rstar Web: 供 End-User Web Base 操作畫面&lt;/li&gt;
+&lt;li&gt;Rstar-Backend: 服務 Rstar Web 的 Backend for Frontend，進行權限驗證、Token 生成與 End-User 的 API 轉發&lt;/li&gt;
+&lt;li&gt;User-Service: 處理用戶相關功能&lt;/li&gt;
+&lt;li&gt;Auth-Service: 處理權限相關功能&lt;/li&gt;
+&lt;li&gt;Analytic-Service: 紀錄系統 Log、用戶軌跡等服務&lt;/li&gt;
+&lt;li&gt;Admin Web: 後台管理員使用的 Web Base 操作畫面&lt;/li&gt;
+&lt;li&gt;Auth-Backend: 服務 Admin Web 的 Backend for Frontend，進行權限驗證、Token 生成與 Admin-User 的 API 轉發&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;已完成的功能有:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;User Login 與權限驗證 (儲存於 Redis)&lt;/li&gt;
+&lt;li&gt;Access/Refresh Token 生成&lt;/li&gt;
+&lt;li&gt;Exception handling &amp;amp; Record&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;後續規劃把 Spring Security Authorization 以及 Global Exception 這兩塊獨立出來做成 Maven Project，儲存到自建的 Nexus 內供其他專案引用。&lt;/p&gt;
+&lt;h3 id=&#34;infrastructure&#34;&gt;Infrastructure&lt;/h3&gt;
+&lt;p&gt;目前是在我房間的 X99 平台上架起 On-Premises Cluster，架構如下:&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://williamrightone.github.io/p/rstar-1/infra.png&#34;
+	width=&#34;1292&#34;
+	height=&#34;824&#34;
+	srcset=&#34;https://williamrightone.github.io/p/rstar-1/infra_huddbe2a2fd3ba9b620c60045adf58d5b9_763013_480x0_resize_box_3.png 480w, https://williamrightone.github.io/p/rstar-1/infra_huddbe2a2fd3ba9b620c60045adf58d5b9_763013_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;Rstar Infra&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;156&#34;
+		data-flex-basis=&#34;376px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;X99 平台的主系統安裝 Windows server 2019，並在裡面以 VMware 建立多台 VM，包含 Gitlab、SonarQube、DependencyTrack、Harbor 以及一個 Kubernetes 集群，來完成整個 CICD 與 Auto Pipeline。&lt;/p&gt;
+&lt;p&gt;由於在內網環境，就模擬開發人員開啟 VPN 連線到 Data Center；在 Windows server 中開放防火牆的特定 port，並利用 Nginx 做反向代理，而 Security 的服務則不對外開放，僅能用遠端連線進行檢視與管理。&lt;/p&gt;
+&lt;p&gt;後續可以再依照需求建立其他的中間建，例如 S3 base 的 MinIO 做 File Server。&lt;/p&gt;
+&lt;h3 id=&#34;sdlc---ci&#34;&gt;SDLC - CI&lt;/h3&gt;
+&lt;p&gt;目前的進度剛完成到 Docker-compose，當前的 CI flow 足夠讓 Developer 能在自己的電腦上將所有專案以 Docker container 的方式將啟動，可以針對需要進行開發的服務以 IDE 取代 Container 進行開發。&lt;/p&gt;
+&lt;p&gt;&lt;img src=&#34;https://williamrightone.github.io/p/rstar-1/CI.png&#34;
+	width=&#34;1566&#34;
+	height=&#34;692&#34;
+	srcset=&#34;https://williamrightone.github.io/p/rstar-1/CI_huecaaf0a6acf8af984db583240f73fb48_78386_480x0_resize_box_3.png 480w, https://williamrightone.github.io/p/rstar-1/CI_huecaaf0a6acf8af984db583240f73fb48_78386_1024x0_resize_box_3.png 1024w&#34;
+	loading=&#34;lazy&#34;
+	
+		alt=&#34;CI Flow&#34;
+	
+	
+		class=&#34;gallery-image&#34; 
+		data-flex-grow=&#34;226&#34;
+		data-flex-basis=&#34;543px&#34;
+	
+&gt;&lt;/p&gt;
+&lt;p&gt;在 Branching Strategy 上，由於只有我一個人和一個環境 (嗚嗚嗚&amp;hellip;孤單威廉)，故選用 Github flow，並搭配 Gitlab-ci，開發流程如下:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;PG 獲得 Ticket 與 Spec (自己出然後 Assign 給自己&amp;hellip;)&lt;/li&gt;
+&lt;li&gt;Checkout Master，建立 Feature 分支並在上面進行開發&lt;/li&gt;
+&lt;li&gt;利用 docker-compose 在本地完成測試&lt;/li&gt;
+&lt;li&gt;commit &amp;amp; push Feature Branch&lt;/li&gt;
+&lt;li&gt;Pipelin go through Security Stage，如 SonarQube、DependencyTrack、Unit Test，沒通過或是未達 Quality Gate 則無法發起 Merge Request&lt;/li&gt;
+&lt;li&gt;發起 Merge Request，由 Senior Code Review &amp;amp; Merge&lt;/li&gt;
+&lt;li&gt;Team Lead tag version，Pipeline Build &amp;amp; push Docker Images&lt;/li&gt;
+&lt;li&gt;PG 利用 docker-compose 拉取 image，重複 Step 1&lt;/li&gt;
+&lt;/ol&gt;
+&lt;h2 id=&#34;結語&#34;&gt;結語&lt;/h2&gt;
+&lt;p&gt;以上的流程大概是從 9 月開始規劃與建置，包含 Infra 的設定與個服務的開發，基礎的設施與 Pipeline 已經達到能讓小團隊開發的規模，而針對 Dev 的測試環境或許也能夠先利用 docker-compose 在 VM 上建立共同測試環境，讓 SA 與 QA 進去塞 Dummy data 並測試。另外也預期整合 Postman Runner 到 Gitlab CI 中，對測試環境做自動化測試。&lt;/p&gt;
+&lt;p&gt;這樣一整理完，其實還是有非常多的事情要做啊!&lt;/p&gt;
+&lt;p&gt;今天才終於架起來 K8S 的 Cluster。過去的 Deployment 使用比較多的是 publish over ssh，這次預計使用 Argo CD 與 Helm 進行部署。CAK 拖了快一年才要考，最近專案時程又很趕，年末又有觀察 JD 的習慣，看來又要更晚睡了&amp;hellip;。&lt;/p&gt;
+</description>
+        </item>
+        <item>
         <title>DevOps is a Culture</title>
         <link>https://williamrightone.github.io/p/devops-is/</link>
         <pubDate>Fri, 27 Oct 2023 16:00:00 +0000</pubDate>
