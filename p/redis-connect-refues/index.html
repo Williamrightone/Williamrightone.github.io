@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'><meta name='description' content='Spring boot 3 以 Container 連線 Redis 時報出 Connection refused'>
+<title>Redis Connection refused with docker container in Spring boot 3</title>
+
+<link rel='canonical' href='https://williamrightone.github.io/p/redis-connect-refues/'>
+
+<link rel="stylesheet" href="/scss/style.min.5be32ca3f6e1a997c75795c4359147cc6d4fbd34948c0acd51e31d237033978a.css"><meta property='og:title' content='Redis Connection refused with docker container in Spring boot 3'>
+<meta property='og:description' content='Spring boot 3 以 Container 連線 Redis 時報出 Connection refused'>
+<meta property='og:url' content='https://williamrightone.github.io/p/redis-connect-refues/'>
+<meta property='og:site_name' content='Lonely William'>
+<meta property='og:type' content='article'><meta property='article:section' content='Post' /><meta property='article:tag' content='Exception' /><meta property='article:tag' content='CI' /><meta property='article:published_time' content='2023-11-03T16:00:00&#43;00:00'/><meta property='article:modified_time' content='2023-11-03T16:00:00&#43;00:00'/>
+<meta name="twitter:title" content="Redis Connection refused with docker container in Spring boot 3">
+<meta name="twitter:description" content="Spring boot 3 以 Container 連線 Redis 時報出 Connection refused">
+    </head>
+    <body class="
+    article-page
+    ">
+    <script>
+        (function() {
+            const colorSchemeKey = 'StackColorScheme';
+            if(!localStorage.getItem(colorSchemeKey)){
+                localStorage.setItem(colorSchemeKey, "auto");
+            }
+        })();
+    </script><script>
+    (function() {
+        const colorSchemeKey = 'StackColorScheme';
+        const colorSchemeItem = localStorage.getItem(colorSchemeKey);
+        const supportDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches === true;
+
+        if (colorSchemeItem == 'dark' || colorSchemeItem === 'auto' && supportDarkMode) {
+            
+
+            document.documentElement.dataset.scheme = 'dark';
+        } else {
+            document.documentElement.dataset.scheme = 'light';
+        }
+    })();
+</script>
+<div class="container main-container flex on-phone--column extended"><aside class="sidebar left-sidebar sticky ">
+    <button class="hamburger hamburger--spin" type="button" id="toggle-menu" aria-label="Toggle Menu">
+        <span class="hamburger-box">
+            <span class="hamburger-inner"></span>
+        </span>
+    </button>
+
+    <header>
+        
+            
+            <figure class="site-avatar">
+                <a href="/">
+                
+                    
+                    
+                    
+                        
+                        <img src="/img/PIX_hub64dd863dc76e34151df30c829b943ef_2249_300x0_resize_box_3.png" width="300"
+                            height="300" class="site-logo" loading="lazy" alt="Avatar">
+                    
+                
+                </a>
+                
+                    <span class="emoji">😎</span>
+                
+            </figure>
+            
+        
+        
+        <div class="site-meta">
+            <h1 class="site-name"><a href="/">Lonely William</a></h1>
+            <h2 class="site-description">Hope you find solution here</h2>
+        </div>
+    </header><ol class="social-menu">
+            
+                <li>
+                    <a 
+                        href='https://github.com/Williamrightone'
+                        target="_blank"
+                        title="GitHub"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-github" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <path d="M9 19c-4.3 1.4 -4.3 -2.5 -6 -3m12 5v-3.5c0 -1 .1 -1.4 -.5 -2c2.8 -.3 5.5 -1.4 5.5 -6a4.6 4.6 0 0 0 -1.3 -3.2a4.2 4.2 0 0 0 -.1 -3.2s-1.1 -.3 -3.5 1.3a12.3 12.3 0 0 0 -6.2 0c-2.4 -1.6 -3.5 -1.3 -3.5 -1.3a4.2 4.2 0 0 0 -.1 3.2a4.6 4.6 0 0 0 -1.3 3.2c0 4.6 2.7 5.7 5.5 6c-.6 .6 -.6 1.2 -.5 2v3.5" />
+</svg>
+
+
+
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://www.linkedin.com/in/william-wu-786857142/'
+                        target="_blank"
+                        title="Linkedin"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-linkedin" width="44" height="44" viewBox="0 0 24 24" stroke-width="1.5" stroke="#2c3e50" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <rect x="4" y="4" width="16" height="16" rx="2" />
+  <line x1="8" y1="11" x2="8" y2="16" />
+  <line x1="8" y1="8" x2="8" y2="8.01" />
+  <line x1="12" y1="16" x2="12" y2="11" />
+  <path d="M16 16v-3a2 2 0 0 0 -4 0" />
+</svg>
+                        
+                    </a>
+                </li>
+            
+                <li>
+                    <a 
+                        href='https://medium.com/@willy4543'
+                        target="_blank"
+                        title="Medium"
+                        rel="me"
+                    >
+                        
+                        
+                            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-brand-medium" width="44" height="44" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+  <rect x="4" y="4" width="16" height="16" rx="2" />
+  <path d="M8 9h1l3 3l3 -3h1" />
+  <line x1="8" y1="15" x2="10" y2="15" />
+  <line x1="14" y1="15" x2="16" y2="15" />
+  <line x1="9" y1="9" x2="9" y2="15" />
+  <line x1="15" y1="9" x2="15" y2="15" />
+</svg>
+                        
+                    </a>
+                </li>
+            
+        </ol><ol class="menu" id="main-menu">
+        
+        
+        
+
+        <li >
+            <a href='/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-home" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <polyline points="5 12 3 12 12 3 21 12 19 12" />
+  <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+  <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+</svg>
+
+
+
+                
+                <span>Home</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/archives/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-archive" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <rect x="3" y="4" width="18" height="4" rx="2" />
+  <path d="M5 8v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-10" />
+  <line x1="10" y1="12" x2="14" y2="12" />
+</svg>
+
+
+
+                
+                <span>Archives</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/search/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-search" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="10" cy="10" r="7" />
+  <line x1="21" y1="21" x2="15" y2="15" />
+</svg>
+
+
+
+                
+                <span>Search</span>
+            </a>
+        </li>
+        
+        
+
+        <li >
+            <a href='/about-me/' >
+                
+                
+                
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-link" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M10 14a3.5 3.5 0 0 0 5 0l4 -4a3.5 3.5 0 0 0 -5 -5l-.5 .5" />
+  <path d="M14 10a3.5 3.5 0 0 0 -5 0l-4 4a3.5 3.5 0 0 0 5 5l.5 -.5" />
+</svg>
+
+
+
+                
+                <span>About Me</span>
+            </a>
+        </li>
+        
+
+        <div class="menu-bottom-section">
+            
+            
+                <li id="dark-mode-toggle">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-left" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="8" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-toggle-right" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="16" cy="12" r="2" />
+  <rect x="2" y="6" width="20" height="12" rx="6" />
+</svg>
+
+
+
+                    <span>Dark Mode</span>
+                </li>
+            
+        </div>
+    </ol>
+</aside>
+
+    <aside class="sidebar right-sidebar sticky">
+        
+            
+                
+    <section class="widget archives">
+        <div class="widget-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-hash" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <line x1="5" y1="9" x2="19" y2="9" />
+  <line x1="5" y1="15" x2="19" y2="15" />
+  <line x1="11" y1="4" x2="7" y2="20" />
+  <line x1="17" y1="4" x2="13" y2="20" />
+</svg>
+
+
+
+        </div>
+        <h2 class="widget-title section-title">Table of contents</h2>
+        
+        <div class="widget--toc">
+            <nav id="TableOfContents">
+  <ol>
+    <li>
+      <ol>
+        <li><a href="#情境">情境</a></li>
+        <li><a href="#解析">解析</a></li>
+        <li><a href="#解法">解法</a></li>
+      </ol>
+    </li>
+  </ol>
+</nav>
+        </div>
+    </section>
+
+            
+        
+    </aside>
+
+
+            <main class="main full-width">
+    <article class="main-article">
+    <header class="article-header">
+
+    <div class="article-details">
+    
+    <header class="article-category">
+        
+            <a href="/categories/exception/" style="background-color: #2a9d8f; color: #fff;">
+                Exception
+            </a>
+        
+    </header>
+    
+
+    <div class="article-title-wrapper">
+        <h2 class="article-title">
+            <a href="/p/redis-connect-refues/">Redis Connection refused with docker container in Spring boot 3</a>
+        </h2>
+    
+        
+        <h3 class="article-subtitle">
+            Spring boot 3 以 Container 連線 Redis 時報出 Connection refused
+        </h3>
+        
+    </div>
+
+    
+    
+    
+    
+    <footer class="article-time">
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-calendar-time" width="56" height="56" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <path d="M11.795 21h-6.795a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v4" />
+  <circle cx="18" cy="18" r="4" />
+  <path d="M15 3v4" />
+  <path d="M7 3v4" />
+  <path d="M3 11h16" />
+  <path d="M18 16.496v1.504l1 1" />
+</svg>
+                <time class="article-time--published">Nov 03, 2023</time>
+            </div>
+        
+
+        
+            <div>
+                <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-clock" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <polyline points="12 7 12 12 15 15" />
+</svg>
+
+
+
+                <time class="article-time--reading">
+                    2 minute read
+                </time>
+            </div>
+        
+    </footer>
+    
+
+    
+</div>
+
+</header>
+
+    <section class="article-content">
+    
+    
+    <h3 id="情境">情境</h3>
+<p>先說結論，是 yml 格式問題，因 Spring boot 3x 的格式與 2x 不同導致。</p>
+<p>承接上篇的 Seed Project，在做 login validation 的時候若成功驗證用戶資料，則生成 Token 並將 User 資訊儲存在 Redis 中。</p>
+<p>完成開發後利用 CI 將所有專案打包成 container，存在 Harbor，並利用 dokcer-compose 拉取，於本地進行開發測試。</p>
+<p>dokcer-compose 示意如下:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="w">  </span><span class="nt">analytic-service</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">extra_hosts</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;host.docker.internal:host-gateway&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="m">192.168.66.228</span><span class="p">:</span><span class="m">9001</span><span class="l">/rstar/analytic-service:latest</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l">analytic-service</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;8093:8093&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">environment</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">CONTAINER_HOST</span><span class="p">:</span><span class="w"> </span><span class="l">host.docker.internal</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">DATABASE_URL</span><span class="p">:</span><span class="w"> </span><span class="l">host.docker.internal:1433</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">DATABASE_SCHEMA</span><span class="p">:</span><span class="w"> </span><span class="l">RSTAR_ANALYTIC_SERVICE</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">DATABASE_USER</span><span class="p">:</span><span class="w"> </span><span class="l">sa</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">DATABASE_PASSWORD</span><span class="p">:</span><span class="w"> </span><span class="l">P@ssw0rd</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">redis</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">image</span><span class="p">:</span><span class="w"> </span><span class="l">redis</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">container_name</span><span class="p">:</span><span class="w"> </span><span class="l">redis</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">ports</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span>- <span class="s2">&#34;6379:6379&#34;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>application.yml 示意則是:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">spring</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">redis</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l">${CONTAINER_HOST:localhost}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="m">6379</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">datasource</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l">jdbc:sqlserver://${DATABASE_URL:localhost:1433};DatabaseName=${DATABASE_SCHEMA:RSTAR_ANALYTIC_SERVICE};trustServerCertificate=true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">username</span><span class="p">:</span><span class="w"> </span><span class="l">${DATABASE_USER:sa}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">password</span><span class="p">:</span><span class="w"> </span><span class="l">${DATABASE_PASSWORD:P@ssw0rd}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>如此，藉由設定 <code>host.docker.internal</code> 能讓 container 連接宿主機的 localhost 服務，而使用 IDE 開發時，則直接連接 localhost。</p>
+<hr>
+<p>弔詭地就來了，當啟動 docker-compose 後，連線到 MS-SQL 是正常的 (MS-SQL 也用 docker 啟動)，但當要將資料放入 Redis 時卻出現 ConnectException: Connection refused。</p>
+<p>當我把 container 關閉後使用 IDE 就可以連結，</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">Servlet</span><span class="o">.</span><span class="na">service</span><span class="o">()</span> <span class="k">for</span> <span class="n">servlet</span> <span class="o">[</span><span class="n">dispatcherServlet</span><span class="o">]</span> <span class="n">in</span> <span class="n">context</span> <span class="n">with</span> <span class="n">path</span> <span class="o">[]</span> <span class="n">threw</span> <span class="n">exception</span> <span class="o">[</span><span class="n">Request</span> <span class="n">processing</span> <span class="n">failed</span><span class="o">:</span> <span class="n">org</span><span class="o">.</span><span class="na">springframework</span><span class="o">.</span><span class="na">data</span><span class="o">.</span><span class="na">redis</span><span class="o">.</span><span class="na">RedisConnectionFailureException</span><span class="o">:</span> <span class="n">Unable</span> <span class="n">to</span> <span class="n">connect</span> <span class="n">to</span> <span class="n">Redis</span><span class="o">]</span> <span class="n">with</span> <span class="n">root</span> <span class="n">cause</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span> 
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">ConnectException</span><span class="o">:</span> <span class="n">Connection</span> <span class="n">refused</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">Net</span><span class="o">.</span><span class="na">pollConnect</span><span class="o">(</span><span class="n">Native</span> <span class="n">Method</span><span class="o">)</span> <span class="o">~[</span><span class="n">na</span><span class="o">:</span><span class="n">na</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">Net</span><span class="o">.</span><span class="na">pollConnectNow</span><span class="o">(</span><span class="n">Net</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">669</span><span class="o">)</span> <span class="o">~[</span><span class="n">na</span><span class="o">:</span><span class="n">na</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">sun</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">ch</span><span class="o">.</span><span class="na">SocketChannelImpl</span><span class="o">.</span><span class="na">finishConnect</span><span class="o">(</span><span class="n">SocketChannelImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">944</span><span class="o">)</span> <span class="o">~[</span><span class="n">na</span><span class="o">:</span><span class="n">na</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">socket</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioSocketChannel</span><span class="o">.</span><span class="na">doFinishConnect</span><span class="o">(</span><span class="n">NioSocketChannel</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">337</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">transport</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">AbstractNioChannel$AbstractNioUnsafe</span><span class="o">.</span><span class="na">finishConnect</span><span class="o">(</span><span class="n">AbstractNioChannel</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">334</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">transport</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">processSelectedKey</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">776</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">transport</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">processSelectedKeysOptimized</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">724</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">transport</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">processSelectedKeys</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">650</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">transport</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">channel</span><span class="o">.</span><span class="na">nio</span><span class="o">.</span><span class="na">NioEventLoop</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">NioEventLoop</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">562</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">transport</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">SingleThreadEventExecutor$4</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">SingleThreadEventExecutor</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">997</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">common</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">ThreadExecutorMap$2</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">ThreadExecutorMap</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">74</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">common</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">io</span><span class="o">.</span><span class="na">netty</span><span class="o">.</span><span class="na">util</span><span class="o">.</span><span class="na">concurrent</span><span class="o">.</span><span class="na">FastThreadLocalRunnable</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">FastThreadLocalRunnable</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">30</span><span class="o">)</span> <span class="o">~[</span><span class="n">netty</span><span class="o">-</span><span class="n">common</span><span class="o">-</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">.</span><span class="na">jar</span><span class="o">!/:</span><span class="mf">4.1.97</span><span class="o">.</span><span class="na">Final</span><span class="o">]</span>
+</span></span><span class="line"><span class="cl"><span class="mi">2023</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mo">02</span> <span class="mi">23</span><span class="o">:</span><span class="mi">32</span><span class="o">:</span><span class="mi">24</span>     <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">base</span><span class="o">/</span><span class="n">java</span><span class="o">.</span><span class="na">lang</span><span class="o">.</span><span class="na">Thread</span><span class="o">.</span><span class="na">run</span><span class="o">(</span><span class="n">Thread</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">831</span><span class="o">)</span> <span class="o">~[</span><span class="n">na</span><span class="o">:</span><span class="n">na</span><span class="o">]</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="解析">解析</h3>
+<p>由於 IDE 可以但 container 不行，一開始花比較多心力去盤查 docker 網路的設定，甚至有一度懷疑是 Redis 不使用 localhost 在連線時會需要設置密碼。</p>
+<p>最後在看官方文件的時候發現 yml 不太一樣，更改後打包 image 竟然就連線成功了&hellip;</p>
+<h3 id="解法">解法</h3>
+<p>將 yml 從 <code>spring.redis.host</code> 更改為 <code>spring.data.redis.host</code> 即可正常連線。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-yml" data-lang="yml"><span class="line"><span class="cl"><span class="nt">spring</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">  </span><span class="nt">data</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nt">redis</span><span class="p">:</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">host</span><span class="p">:</span><span class="w"> </span><span class="l">${CONTAINER_HOST:localhost}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">      </span><span class="nt">port</span><span class="p">:</span><span class="w"> </span><span class="m">6379</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>我就納悶了，既然打包成 image 後不能連線，那應該在 IDE 連線的時候就要失敗才對啊&hellip;</p>
+
+</section>
+
+
+    <footer class="article-footer">
+    
+    <section class="article-tags">
+        
+            <a href="/tags/exception/">Exception</a>
+        
+            <a href="/tags/ci/">CI</a>
+        
+    </section>
+
+
+    
+    <section class="article-copyright">
+        <svg xmlns="http://www.w3.org/2000/svg" class="icon icon-tabler icon-tabler-copyright" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+  <path stroke="none" d="M0 0h24v24H0z"/>
+  <circle cx="12" cy="12" r="9" />
+  <path d="M14.5 9a3.5 4 0 1 0 0 6" />
+</svg>
+
+
+
+        <span>Licensed under CC BY-NC-SA 4.0</span>
+    </section>
+    </footer>
+
+
+    
+</article>
+
+    
+
+    
+
+<aside class="related-content--wrapper">
+    <h2 class="section-title">Related content</h2>
+    <div class="related-content">
+        <div class="flex article-list--tile">
+            
+                
+<article class="">
+    <a href="/p/podman-root/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Podman, mount path ownership become root &amp; AccessDeniedException</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="has-image">
+    <a href="/p/gitlab-pppd/">
+        
+        
+            <div class="article-image">
+                <img src="/p/gitlab-pppd/pipeline-failed.e656ea1f01e2fd3d0c62bd3c2b636dfd_hu1ed2efdbf0ff1e026b21b450b0a50dd9_138993_250x150_fill_box_smart1_3.png" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post Gitlab CI, The kernel does not support PPP"
+                        data-key="gitlab-pppd" 
+                        data-hash="md5-5lbqHwHi/T0MYr08K2Nt/Q==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Gitlab CI, The kernel does not support PPP</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/jpa-group/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">CommandAcceptanceException, create table group</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/spring-security/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">Spring Security 3, 拋出自定義 Exception</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="">
+    <a href="/p/jdbcsqlsyntaxerrorexception/">
+        
+        
+
+        <div class="article-details">
+            <h2 class="article-title">JdbcSQLSyntaxErrorException</h2>
+        </div>
+    </a>
+</article>
+
+            
+        </div>
+    </div>
+</aside>
+
+     
+    
+        
+    <div class="disqus-container">
+    <div id="disqus_thread"></div>
+<script type="application/javascript">
+    window.disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "williameightone" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+
+<style>
+    .disqus-container {
+        background-color: var(--card-background);
+        border-radius: var(--card-border-radius);
+        box-shadow: var(--shadow-l1);
+        padding: var(--card-padding);
+    }
+</style>
+
+<script>
+    window.addEventListener('onColorSchemeChange', (e) => {
+        if (typeof DISQUS == 'object') {
+            DISQUS.reset({
+                reload: true
+            });
+        }
+    })
+</script>
+
+    
+
+    <footer class="site-footer">
+    <section class="copyright">
+        &copy; 
+        
+        2023 Lonely William
+    </section>
+    
+    <section class="powerby">
+        Built with <a href="https://gohugo.io/" target="_blank" rel="noopener">Hugo</a> <br />
+        Theme <b><a href="https://github.com/CaiJimmy/hugo-theme-stack" target="_blank" rel="noopener" data-version="3.16.0">Stack</a></b> designed by <a href="https://jimmycai.com" target="_blank" rel="noopener">Jimmy</a>
+    </section>
+</footer>
+
+
+    
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    
+    <div class="pswp__bg"></div>
+
+    
+    <div class="pswp__scroll-wrap">
+
+        
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                
+                
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"integrity="sha256-ePwmChbbvXbsO02lbM3HoHbSHTHFAeChekF1xKJdleo="crossorigin="anonymous"
+                defer
+                >
+            </script><script 
+                src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"integrity="sha256-UKkzOn/w1mBxRmLLGrSeyB4e1xbrp4xylgAWb3M42pU="crossorigin="anonymous"
+                defer
+                >
+            </script><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css"crossorigin="anonymous"
+            ><link 
+                rel="stylesheet" 
+                href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css"crossorigin="anonymous"
+            >
+
+            </main>
+        </div>
+        <script 
+                src="https://cdn.jsdelivr.net/npm/node-vibrant@3.1.6/dist/vibrant.min.js"integrity="sha256-awcR2jno4kI5X0zL8ex0vi2z&#43;KMkF24hUW8WePSA9HM="crossorigin="anonymous"
+                
+                >
+            </script><script type="text/javascript" src="/ts/main.js" defer></script>
+<script>
+    (function () {
+        const customFont = document.createElement('link');
+        customFont.href = "https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&display=swap";
+
+        customFont.type = "text/css";
+        customFont.rel = "stylesheet";
+
+        document.head.appendChild(customFont);
+    }());
+</script>
+
+    </body>
+</html>
