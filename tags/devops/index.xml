@@ -116,16 +116,23 @@
 &lt;p&gt;&lt;code&gt;DevOps is a Culture&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;DevOps 本身橫跨了開發到部署與維運這幾個維度，而當 DevOps 遇上 Agile 更能產生奇妙的化學反應。&lt;/p&gt;
 &lt;ul&gt;
-&lt;li&gt;良好的 Branching Strategy 能夠分割環境讓 PG 能輕易的測試&lt;/li&gt;
+&lt;li&gt;良好的 Branching Strategy 能夠分割環境讓 PG 輕易的測試&lt;/li&gt;
 &lt;li&gt;Integration testing 能讓程式碼在交付前最大可能的減少錯誤&lt;/li&gt;
 &lt;li&gt;完整的 CICD 流程是 Sprint 能夠準時交付的基底&lt;/li&gt;
 &lt;/ul&gt;
-&lt;p&gt;然而美好的計畫卻容易都在專案的時程壓力下走了味。&lt;/p&gt;
-&lt;p&gt;為什麼說 DevOps 是一種文化? 文化的定義是一個群體對於一整件事情的作風、習慣，群體間又有上下管理與資源分配的情形。然後便開始出現以下的情況:&lt;/p&gt;
+&lt;p&gt;然而美好的計畫卻容易都在專案的時程壓力下走了味。為什麼說 DevOps 是一種文化? 文化的定義是一個群體對於一整件事情的作風、習慣。&lt;/p&gt;
+&lt;p&gt;例如 PG 如果覺得只要 local 或是 dev 環境能運作就可以，就很可能遇到以下問題:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;PG 是否對 linux server 有一定程度的了解，例如 container scaling 或 HA 會導致 cron job 重複。&lt;/li&gt;
+&lt;li&gt;不善的物件創建會導致記憶體像膽固醇一樣累積。&lt;/li&gt;
+&lt;li&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;而群體間又有上下管理與資源分配的情形 (通常取決老闆 Domain Knowhow 的廣度):&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;時程很趕，Unit Test 先不做之後再補&lt;/li&gt;
-&lt;li&gt;一切以 Application 的開發優先&lt;/li&gt;
-&lt;li&gt;先能手動部署就好，無視 Compliance &amp;amp; Flow Management&lt;/li&gt;
+&lt;li&gt;FSD 沒有或 User 沒考量到的不處置&lt;/li&gt;
+&lt;li&gt;先手動部署就好&lt;/li&gt;
+&lt;li&gt;無視 Compliance &amp;amp; Flow Management，Security 無限右移&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;到頭來，專案真的有交付出所謂的價值嗎?&lt;/p&gt;
 </description>

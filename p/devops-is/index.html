@@ -342,16 +342,23 @@
 <p><code>DevOps is a Culture</code></p>
 <p>DevOps 本身橫跨了開發到部署與維運這幾個維度，而當 DevOps 遇上 Agile 更能產生奇妙的化學反應。</p>
 <ul>
-<li>良好的 Branching Strategy 能夠分割環境讓 PG 能輕易的測試</li>
+<li>良好的 Branching Strategy 能夠分割環境讓 PG 輕易的測試</li>
 <li>Integration testing 能讓程式碼在交付前最大可能的減少錯誤</li>
 <li>完整的 CICD 流程是 Sprint 能夠準時交付的基底</li>
 </ul>
-<p>然而美好的計畫卻容易都在專案的時程壓力下走了味。</p>
-<p>為什麼說 DevOps 是一種文化? 文化的定義是一個群體對於一整件事情的作風、習慣，群體間又有上下管理與資源分配的情形。然後便開始出現以下的情況:</p>
+<p>然而美好的計畫卻容易都在專案的時程壓力下走了味。為什麼說 DevOps 是一種文化? 文化的定義是一個群體對於一整件事情的作風、習慣。</p>
+<p>例如 PG 如果覺得只要 local 或是 dev 環境能運作就可以，就很可能遇到以下問題:</p>
+<ul>
+<li>PG 是否對 linux server 有一定程度的了解，例如 container scaling 或 HA 會導致 cron job 重複。</li>
+<li>不善的物件創建會導致記憶體像膽固醇一樣累積。</li>
+<li></li>
+</ul>
+<p>而群體間又有上下管理與資源分配的情形 (通常取決老闆 Domain Knowhow 的廣度):</p>
 <ul>
 <li>時程很趕，Unit Test 先不做之後再補</li>
-<li>一切以 Application 的開發優先</li>
-<li>先能手動部署就好，無視 Compliance &amp; Flow Management</li>
+<li>FSD 沒有或 User 沒考量到的不處置</li>
+<li>先手動部署就好</li>
+<li>無視 Compliance &amp; Flow Management，Security 無限右移</li>
 </ul>
 <p>到頭來，專案真的有交付出所謂的價值嗎?</p>
 
@@ -415,6 +422,30 @@
 
         <div class="article-details">
             <h2 class="article-title">DevOps Taiwan Meetup - BizDevOps</h2>
+        </div>
+    </a>
+</article>
+
+            
+                
+<article class="has-image">
+    <a href="/p/2023-summary/">
+        
+        
+            <div class="article-image">
+                <img src="/p/2023-summary/me-in-east.1984db7dc1e82cb9005bc20287bfaa67_hu8153e07319cf5ec336236167d7e1a4eb_160064_250x150_fill_q75_box_smart1.jpg" 
+                        width="250" 
+                        height="150" 
+                        loading="lazy"
+                        alt="Featured image of post 2023 Summary"
+                        data-key="2023-summary" 
+                        data-hash="md5-GYTbfcHoLLkAW8ICh7&#43;qZw==">
+                
+            </div>
+        
+
+        <div class="article-details">
+            <h2 class="article-title">2023 Summary</h2>
         </div>
     </a>
 </article>
@@ -547,7 +578,9 @@
     <section class="copyright">
         &copy; 
         
-        2023 Lonely William
+            2023 - 
+        
+        2024 Lonely William
     </section>
     
     <section class="powerby">
