@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Lonely William Blog</title>
+    <link>https://williamrightone.github.io/</link>
+    <description>Recent content on Lonely William Blog</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-tw</language>
+    <lastBuildDate>Sun, 07 Apr 2024 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://williamrightone.github.io/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Hello 2024</title>
+      <link>https://williamrightone.github.io/post/2024-04-07-hello-world/</link>
+      <pubDate>Sun, 07 Apr 2024 00:00:00 +0000</pubDate>
+      <guid>https://williamrightone.github.io/post/2024-04-07-hello-world/</guid>
+      <description>About 2024 2024 或許會是值得紀錄的一年，2023 年末我離開了歐洲的信用卡軟體公司，加入了 Big Blue Taiwan． 記得去年的計畫是每週都能夠有一些文章的產出，</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://williamrightone.github.io/about/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://williamrightone.github.io/about/</guid>
+      <description>About Me Hi, I’m William Wu, currently working in Big Blue Taiwan as Application Consultant. familiar with Java Backend &amp;amp; DevSecOps.&#xA;Starting from April. 2024, I planning to record life &amp;amp; technical notes, hope readers can find solution here.</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://williamrightone.github.io/notes/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://williamrightone.github.io/notes/</guid>
+      <description>2022 iThome 鐵人賽 - Angular + Spring Boot 演示專案由開發到部署</description>
+    </item>
+    <item>
+      <title></title>
+      <link>https://williamrightone.github.io/search/placeholder/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://williamrightone.github.io/search/placeholder/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Posts Archive</title>
+      <link>https://williamrightone.github.io/archive/</link>
+      <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
+      <guid>https://williamrightone.github.io/archive/</guid>
+      <description></description>
+    </item>
+  </channel>
+</rss>
