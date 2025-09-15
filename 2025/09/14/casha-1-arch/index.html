@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>Casha | 基於 Spring Cloud 的 F&amp;B 微服務專案 - William Right&#039;s Blog</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="William Right&#039;s Blog"><meta name="msapplication-TileImage" content="/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="William Right&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="Casha POS 是一套專為餐飲業 (F&amp;amp;B) 打造的系統, 是我這一段時間手搓的第二個專案, 預計會分成三篇, 介紹架構, 整合 Redis, MQ 的 Menu 快取機制與高併發 order api, 以及壓測與監控..."><meta property="og:type" content="blog"><meta property="og:title" content="Casha | 基於 Spring Cloud 的 F&amp;B 微服務專案"><meta property="og:url" content="https://williamrightone.github.io/2025/09/14/casha-1-arch/"><meta property="og:site_name" content="William Right&#039;s Blog"><meta property="og:description" content="Casha POS 是一套專為餐飲業 (F&amp;amp;B) 打造的系統, 是我這一段時間手搓的第二個專案, 預計會分成三篇, 介紹架構, 整合 Redis, MQ 的 Menu 快取機制與高併發 order api, 以及壓測與監控..."><meta property="og:locale" content="en_US"><meta property="og:image" content="https://williamrightone.github.io/img/casha/casha-typo.png"><meta property="og:image" content="https://williamrightone.github.io/img/casha/casha-infra.png"><meta property="article:published_time" content="2025-09-14T00:29:13.000Z"><meta property="article:modified_time" content="2025-09-15T02:14:28.102Z"><meta property="article:author" content="William Wu"><meta property="article:tag" content="develop"><meta property="article:tag" content="Spring Cloud"><meta property="article:tag" content="Casha"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://williamrightone.github.io/img/casha/casha-typo.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://williamrightone.github.io/2025/09/14/casha-1-arch/"},"headline":"Casha | 基於 Spring Cloud 的 F&B 微服務專案","image":["https://williamrightone.github.io/img/casha/casha-typo.png","https://williamrightone.github.io/img/casha/casha-infra.png"],"datePublished":"2025-09-14T00:29:13.000Z","dateModified":"2025-09-15T02:14:28.102Z","author":{"@type":"Person","name":"William Wu"},"publisher":{"@type":"Organization","name":"William Right's Blog","logo":{"@type":"ImageObject","url":"https://williamrightone.github.io/img/PIX.png"}},"description":"Casha POS 是一套專為餐飲業 (F&amp;B) 打造的系統, 是我這一段時間手搓的第二個專案, 預計會分成三篇, 介紹架構, 整合 Redis, MQ 的 Menu 快取機制與高併發 order api, 以及壓測與監控..."}</script><link rel="canonical" href="https://williamrightone.github.io/2025/09/14/casha-1-arch/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><!--!--><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2025-09-14T00:29:13.000Z" title="2025/9/14 上午8:29:13">2025-09-14</time></span><span class="level-item">Updated&nbsp;<time dateTime="2025-09-15T02:14:28.102Z" title="2025/9/15 上午10:14:28">2025-09-15</time></span><span class="level-item"><a class="link-muted" href="/categories/Development/">Development</a></span><span class="level-item">8 minutes read (About 1188 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">Casha | 基於 Spring Cloud 的 F&amp;B 微服務專案</h1><div class="content"><p>Casha POS 是一套專為餐飲業 (F&amp;B) 打造的系統，採用 Spring Boot 3.4.8 與 Spring Cloud 2024 建構後端微服務，前端則以 Vue 3 + 組合式 API 搭配 Element Plus 開發。系統涵蓋後台管理、POS 點餐、KDS 廚房顯示與消費者自助點餐，並整合多種中介軟體與觀測工具，支援高併發交易與全鏈路監控。</p>
+<p>目前把更多 <del>好懶得整理</del> 還在整理的筆記都放在 <a target="_blank" rel="noopener" href="https://github.com/Williamrightone/casha-pos-doc?tab=readme-ov-file">Github</a> 中, 若對這個專案有興趣可以參考 ~~</p>
+<p><img src="/../img/casha/casha-typo.png" alt="Casha 的架構"></p>
+<p>這一次寫這個專案也要驗證工作用到的技巧, 作為專案特色如下:</p>
+<ol>
+<li><strong>前後端分離 + BFF 模式</strong>：Admin、POS、KDS、Order App 各有專屬入口，降低耦合。</li>
+<li><strong>高併發交易處理</strong>：Redis + RabbitMQ 確保訂單高效能與可擴展。</li>
+<li><strong>全鏈路可觀測性</strong>：監控、日誌、追蹤工具整合，便於快速定位問題。</li>
+<li><strong>模組化設計</strong>：Auth、Store、Order、Analytic 各自獨立，支援服務擴展與水平擴容。</li>
+<li><strong>雲原生友好</strong>：服務與中介軟體均容器化，未來可支援 Kubernetes 部署。</li>
+<li><strong>完整 Pipeline &amp; SDLC</strong> : On-Premise devops 環境, 全權控管 Github Action runner, Harbor, SonarQube 規範, 定期 OWASP Top 10 檢測與修正, Jmeter 壓力測試與測報。</li>
+</ol>
+<hr>
+<h2 id="Applications"><a href="#Applications" class="headerlink" title="Applications"></a>Applications</h2><h3 id="1-客戶端應用-Client-Apps"><a href="#1-客戶端應用-Client-Apps" class="headerlink" title="1. 客戶端應用 (Client Apps)"></a>1. 客戶端應用 (Client Apps)</h3><ul>
+<li><strong>Admin Web</strong>：後台管理系統，用於帳號、權限與餐廳配置。</li>
+<li><strong>POS (尚未開放)</strong>：櫃台點餐端，處理訂單建立與結帳。</li>
+<li><strong>KDS (Kitchen Display System, 尚未開放)</strong>：廚房顯示端，接收訂單並支援出餐流程。</li>
+<li><strong>Order App (Web)</strong>：顧客使用的自助點餐 Web 應用，支援掃描 QRCode 下單。</li>
+</ul>
+<h3 id="2-後端微服務-Microservices"><a href="#2-後端微服務-Microservices" class="headerlink" title="2. 後端微服務 (Microservices)"></a>2. 後端微服務 (Microservices)</h3><ul>
+<li><strong>Spring Cloud Gateway</strong>：所有流量的入口，負責路由轉發、JWT 驗證、服務發現與 API 管控。</li>
+<li><strong>Admin-Portal</strong>：BFF，對接前端 Admin Web，負責與 Auth-Service、Store-Service 溝通。</li>
+<li><strong>Cis-Portal</strong>：BFF，服務 POS, Web App 與自助點餐應用，負責與 Order-Service 互動。</li>
+<li><strong>KDS-Portal</strong>：BFF，專為廚房顯示端設計，串接 Order-Service。</li>
+<li><strong>Auth-Service</strong>：身分驗證與權限管理，包含帳號、角色、權限控制。</li>
+<li><strong>Store-Service</strong>：餐廳與分店管理，包含菜單、座位、商品與 QRCode 設定，支援 <strong>MinIO</strong> 圖片檔案存取。</li>
+<li><strong>Order-Service</strong>：核心訂單服務，處理點餐、狀態流轉，並透過 <strong>RabbitMQ</strong> 進行訂單事件傳遞。</li>
+<li><strong>Analytic-Service</strong>：數據分析與報表，聚合交易與使用行為數據。</li>
+</ul>
+<h3 id="3-中介軟體與基礎設施-Middleware"><a href="#3-中介軟體與基礎設施-Middleware" class="headerlink" title="3. 中介軟體與基礎設施 (Middleware)"></a>3. 中介軟體與基礎設施 (Middleware)</h3><ul>
+<li><strong>Redis</strong>：快取服務，支援 session、token 與高頻查詢快取。</li>
+<li><strong>RabbitMQ</strong>：消息佇列，處理訂單事件與跨服務異步通信。</li>
+<li><strong>MinIO</strong>：S3 相容物件存儲，主要用於圖片、檔案上傳與存取。</li>
+</ul>
+<h3 id="4-監控與可觀測性-Observability-Monitoring"><a href="#4-監控與可觀測性-Observability-Monitoring" class="headerlink" title="4. 監控與可觀測性 (Observability&#x2F;Monitoring)"></a>4. 監控與可觀測性 (Observability&#x2F;Monitoring)</h3><ul>
+<li><strong>Jaeger</strong>：分散式追蹤，追蹤跨服務的請求鏈路。</li>
+<li><strong>Prometheus</strong>：指標收集，抓取 Spring Boot Actuator metrics。</li>
+<li><strong>Grafana</strong>：監控大盤，統一可視化。</li>
+<li><strong>ElasticSearch + Kibana</strong>：集中式日誌管理與查詢。</li>
+<li><strong>FluentBit</strong>：日誌收集與轉發。</li>
+</ul>
+<hr>
+<h2 id="On-Premise-InfraStructure"><a href="#On-Premise-InfraStructure" class="headerlink" title="On-Premise InfraStructure"></a>On-Premise InfraStructure</h2><p>這一次的 DevOps 還是用當年的 Dell 7040m 架設 Harbor &amp; Github private runner 和 SonarQube, 而部署的機器就是自架的 Am4 平台(之前的 X99 實在太耗電…)。DevOps 和 Production 機器都在同一個網路環境內, 也方便部署。</p>
+<p>Production 的伺服器是一台 windows server, 裡面藉由 vmware 搭建數台 vm 分離環境, 並由 nginx 作為 reverse proxy, 最外部則是使用我的網域 williamrightone.com 設定 CDN 與 cloudflare tunnel 做 https, C4-Model 如下:</p>
+<p><img src="/../img/casha/casha-infra.png" alt="Casha 的 C4-Model"></p>
+<h2 id="系統互動流程"><a href="#系統互動流程" class="headerlink" title="系統互動流程"></a>系統互動流程</h2><ul>
+<li><p><strong>外部使用者</strong> 透過 <strong>Nginx</strong> 存取應用，請求由 Cloudflare 轉經 Nginx 代理至 <strong>Spring Cloud Gateway</strong>。</p>
+</li>
+<li><p><strong>Gateway</strong> 與後端服務互動，連接 <strong>MySQL、Redis、RabbitMQ、Consul、ElasticSearch、MinIO</strong> 等中間件，實現完整業務流程。</p>
+</li>
+<li><p><strong>Prometheus</strong> 定期抓取 Gateway 指標，<strong>Grafana</strong> 與 <strong>Jaeger</strong> 提供可視化監控與追蹤。</p>
+</li>
+<li><p>管理員透過 <strong>DBeaver、RedisInsight、Browser</strong> 等工具完成日常維運與監控工作。</p>
+</li>
+<li><p>Pipeline 在 main branch 下 tag 的時候觸發構建, 整個 SDLC 基本上和我之前的 <a href="https://williamrightone.github.io/2025/06/23/colorly-4-sdlc/">Colorly</a> 專案一致。</p>
+</li>
+</ul>
+<hr>
+<p>第一篇快速介紹了整個專案的架構, 下一篇則以 menu, order api 介紹核心的操作與下單流程, 並講解 redis 和 mq 從中扮演的角色與功用。</p>
+</div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/develop/">develop</a><a class="link-muted mr-2" rel="tag" href="/tags/Spring-Cloud/">Spring Cloud</a><a class="link-muted mr-2" rel="tag" href="/tags/Casha/">Casha</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2025/08/28/snowflakeId-frontend/"><span class="level-item">Snowflake ID 跨前後端的整數精度問題</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/PIX.png" alt="William Wu"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">William Wu</p><p class="is-size-6 is-block">Hope you find solution here</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Taiwan</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives/"><p class="title">11</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories/"><p class="title">3</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags/"><p class="title">13</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/Williamrightone" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/Williamrightone"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="LinkedIn" href="https://www.linkedin.com/in/william-wu-786857142"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="CakeResume" href="https://www.cake.me/willy4543"><i class="fas fa-user-tie"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><!--!--><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/Development/"><span class="level-start"><span class="level-item">Development</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="/categories/Life/"><span class="level-start"><span class="level-item">Life</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/categories/Troll/"><span class="level-start"><span class="level-item">Troll</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-09-14T00:29:13.000Z">2025-09-14</time></p><p class="title"><a href="/2025/09/14/casha-1-arch/">Casha | 基於 Spring Cloud 的 F&amp;B 微服務專案</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-08-27T22:00:56.000Z">2025-08-28</time></p><p class="title"><a href="/2025/08/28/snowflakeId-frontend/">Snowflake ID 跨前後端的整數精度問題</a></p><p class="categories"><a href="/categories/Troll/">Troll</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-23T02:25:33.000Z">2025-06-23</time></p><p class="title"><a href="/2025/06/23/colorly-4-sdlc/">Colorly | 4. 軟體開發生命週期 (Software Development Life Cycle, SDLC)</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-18T20:33:57.000Z">2025-06-19</time></p><p class="title"><a href="/2025/06/19/colorly-3-pjst/">Colorly | 3. 專案目錄結構 (Clean Architecture)</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2025-06-11T08:17:16.000Z">2025-06-11</time></p><p class="title"><a href="/2025/06/11/colorly-2-arch/">Colorly | 2. Colorly 架構介紹</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2025/09/"><span class="level-start"><span class="level-item">September 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/08/"><span class="level-start"><span class="level-item">August 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/06/"><span class="level-start"><span class="level-item">June 2025</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/04/"><span class="level-start"><span class="level-item">April 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/03/"><span class="level-start"><span class="level-item">March 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/02/"><span class="level-start"><span class="level-item">February 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/Agile/"><span class="tag">Agile</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Casha/"><span class="tag">Casha</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Clean-Architecture/"><span class="tag">Clean Architecture</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DB/"><span class="tag">DB</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DevOps/"><span class="tag">DevOps</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Exception/"><span class="tag">Exception</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Life/"><span class="tag">Life</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SDLC/"><span class="tag">SDLC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Cloud/"><span class="tag">Spring Cloud</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/chit-chat/"><span class="tag">chit-chat</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/colorly/"><span class="tag">colorly</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/develop/"><span class="tag">develop</span><span class="tag">9</span></a></div><div class="control"><a class="tags has-addons" href="/tags/github-Actions/"><span class="tag">github Actions</span><span class="tag">1</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a><p class="is-size-7"><span>&copy; 2025 William Wu</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2025</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "This website uses cookies to improve your experience.",
+          dismiss: "Got it!",
+          allow: "Allow cookies",
+          deny: "Decline",
+          link: "Learn more",
+          policy: "Cookie Policy",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
