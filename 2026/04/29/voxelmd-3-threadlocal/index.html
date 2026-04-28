@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計 - William Right&#039;s Blog</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="William Right&#039;s Blog"><meta name="msapplication-TileImage" content="/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="William Right&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="在測試 VoxelMD API 的時候後端報了一個 NullPointerException, 在深入看下去後才發現自己的一些設計缺陷, 還讓 AI 放大了, 不僅反思即便我認為架構寫得算完整, 仍然有很多要改善的空間..."><meta property="og:type" content="blog"><meta property="og:title" content="VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計"><meta property="og:url" content="https://williamrightone.github.io/2026/04/29/voxelmd-3-threadlocal/"><meta property="og:site_name" content="William Right&#039;s Blog"><meta property="og:description" content="在測試 VoxelMD API 的時候後端報了一個 NullPointerException, 在深入看下去後才發現自己的一些設計缺陷, 還讓 AI 放大了, 不僅反思即便我認為架構寫得算完整, 仍然有很多要改善的空間..."><meta property="og:locale" content="en_US"><meta property="og:image" content="https://williamrightone.github.io/img/voxel-refactor.png"><meta property="article:published_time" content="2026-04-28T23:07:53.000Z"><meta property="article:modified_time" content="2026-04-28T20:29:45.797Z"><meta property="article:author" content="William Wu"><meta property="article:tag" content="develop"><meta property="article:tag" content="VoxelMD"><meta property="article:tag" content="AI"><meta property="article:tag" content="Vibe Code"><meta property="article:tag" content="Thread"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://williamrightone.github.io/img/voxel-refactor.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://williamrightone.github.io/2026/04/29/voxelmd-3-threadlocal/"},"headline":"VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計","image":["https://williamrightone.github.io/img/voxel-refactor.png"],"datePublished":"2026-04-28T23:07:53.000Z","dateModified":"2026-04-28T20:29:45.797Z","author":{"@type":"Person","name":"William Wu"},"publisher":{"@type":"Organization","name":"William Right's Blog","logo":{"@type":"ImageObject","url":"https://williamrightone.github.io/img/PIX.png"}},"description":"在測試 VoxelMD API 的時候後端報了一個 NullPointerException, 在深入看下去後才發現自己的一些設計缺陷, 還讓 AI 放大了, 不僅反思即便我認為架構寫得算完整, 仍然有很多要改善的空間..."}</script><link rel="canonical" href="https://williamrightone.github.io/2026/04/29/voxelmd-3-threadlocal/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=G-S29D3Z45V4" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-S29D3Z45V4');</script><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><div class="card-image"><span class="image is-7by3"><img class="fill" src="/img/voxel-refactor.png" alt="VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計"></span></div><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2026-04-28T23:07:53.000Z" title="2026/4/29 上午7:07:53">2026-04-29</time></span><span class="level-item">Updated&nbsp;<time dateTime="2026-04-28T20:29:45.797Z" title="2026/4/29 上午4:29:45">2026-04-29</time></span><span class="level-item"><a class="link-muted" href="/categories/Development/">Development</a></span><span class="level-item">23 minutes read (About 3425 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計</h1><div class="content"><h2 id="1-起因"><a href="#1-起因" class="headerlink" title="1. 起因"></a>1. 起因</h2><p>VoxelMD 的 BFF 提供一支用量彙總的 api <code>GET /api/users/me/usage</code>，讓前端首頁一次拿到：</p>
+<ul>
+<li><strong>Workspace 用量</strong>（來自 Article Service）：workspace 數、文章總數</li>
+<li><strong>Media 用量</strong>（來自 Media Service）：照片數、影片數</li>
+<li><strong>Recording 用量</strong>（來自 Recording Service，Phase 1 為 stub）：錄音數</li>
+</ul>
+<p>為了避免三次 round-trip，BFF 的 <code>GetUsageUseCase</code> 用 <code>CompletableFuture.supplyAsync</code> <strong>同時</strong>打三支下游 Feign，再把三份結果彙整回傳。</p>
+<p>身份識別的設計原本是典型的 Spring Cloud 套路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">BFF JwtAuthFilter</span><br><span class="line">    → UserContextHolder (ThreadLocal)</span><br><span class="line">        → UseCase 讀 ctx</span><br><span class="line">            → Feign RequestInterceptor 讀 ThreadLocal → 塞 X-User-* headers</span><br><span class="line">                → 下游 InternalAuthFilter 讀 header → 下游 UserContextHolder (ThreadLocal)</span><br><span class="line">                    → 下游 Controller/UseCase 讀 ThreadLocal</span><br></pre></td></tr></table></figure>
+
+<p>這樣每一站都在讀 <code>ThreadLocal</code>。看起來很優雅。</p>
+<hr>
+<h2 id="2-NullPointerException"><a href="#2-NullPointerException" class="headerlink" title="2. NullPointerException"></a>2. NullPointerException</h2><p>但是在手動測試時收到這段：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">java.lang.NullPointerException:</span><br><span class="line">  Cannot invoke &quot;com.voxelmd.common.shared.auth.UserContext.getUserId()&quot;</span><br><span class="line">  because the return value of &quot;com.voxelmd.common.shared.auth.UserContextHolder.get()&quot; is null</span><br><span class="line">    at com.voxelmd.media.application.api.controller.UserUsageController.getMediaUsage(UserUsageController.java:28)</span><br></pre></td></tr></table></figure>
+
+<p>我第一反應是：<strong>media-service 的 Controller 拿不到 <code>UserContext</code>??</strong></p>
+<p>但這很奇怪, media-service 明明有 <code>InternalAuthFilter</code>，他會從 <code>X-User-Id</code> header 還原 <code>UserContext</code> 再塞到 <code>ThreadLocal</code>。啊怎麼 Filter 失靈了?</p>
+<p>檢查 filter 本身沒問題。檢查 BFF 端的 <code>UserContextFeignInterceptor</code> 也沒問題。程式碼在順跑情況下測試都會過。</p>
+<p>所以問題只在<strong>這支 API</strong> 會發生。</p>
+<hr>
+<h2 id="3-ThreadLocal-在-CompletableFuture-下遺失"><a href="#3-ThreadLocal-在-CompletableFuture-下遺失" class="headerlink" title="3. ThreadLocal 在 CompletableFuture 下遺失"></a>3. ThreadLocal 在 <code>CompletableFuture</code> 下遺失</h2><p>來看 UseCase 實作：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> UsageRs <span class="title function_">execute</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">UserContext</span> <span class="variable">ctx</span>  <span class="operator">=</span> UserContextHolder.get();  <span class="comment">// ← 這裡在 Tomcat request thread 上，有值</span></span><br><span class="line">    <span class="type">Plan</span> <span class="variable">plan</span> <span class="operator">=</span> ctx.getPlan();</span><br><span class="line"></span><br><span class="line">    CompletableFuture&lt;WorkspaceUsageRs&gt;  fws = CompletableFuture.supplyAsync(workspaceUsagePort::getUsage);</span><br><span class="line">    CompletableFuture&lt;MediaUsageRs&gt;      fmd = CompletableFuture.supplyAsync(mediaUsagePort::getUsage);</span><br><span class="line">    CompletableFuture&lt;RecordingUsageDto&gt; frec = CompletableFuture.supplyAsync(() -&gt; &#123; ... &#125;);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>這時候就想到了 Thread pool 的一個坑:</p>
+<p><code>CompletableFuture.supplyAsync(Supplier)</code>（不帶 <code>Executor</code> 的重載）會把工作<strong>丟給 <code>ForkJoinPool.commonPool()</code></strong>, 一個和當前 request thread <strong>完全不同</strong>的執行緒。</p>
+<p>呼叫鏈接著變成：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">Tomcat request thread (tomcat-nio-N)</span><br><span class="line">    │ UserContextHolder.set(ctx)  ← 設在這條 thread 的 ThreadLocal</span><br><span class="line">    │ supplyAsync(mediaUsagePort::getUsage)</span><br><span class="line">    ▼</span><br><span class="line">ForkJoinPool.commonPool-worker-K</span><br><span class="line">    │ Feign call 被觸發</span><br><span class="line">    │ UserContextFeignInterceptor.apply(template)</span><br><span class="line">    │   └─ UserContextHolder.get()  →  null  ← 不是同一條 thread</span><br><span class="line">    │   └─ if (ctx != null) 為 false</span><br><span class="line">    │   └─ X-User-Id / X-User-Plan header 都不會被塞進去</span><br><span class="line">    ▼</span><br><span class="line">HTTP 到達 media-service，但沒有那兩個 header</span><br><span class="line">    │ InternalAuthFilter 因 header == null 不設 UserContextHolder</span><br><span class="line">    ▼</span><br><span class="line">Controller 讀 UserContextHolder.get() → null</span><br><span class="line">    └─ .getUserId() → NPE</span><br></pre></td></tr></table></figure>
+
+<p>**表象是 media-service 的 NPE，實際問題卻是在 BFF 的 async 切換執行緒導致 ThreadLocal 遺失。**所以三條 <code>supplyAsync</code> lambda <strong>三條都有這個 bug</strong>，只是 media 那條剛好先報錯罷了。</p>
+<hr>
+<h2 id="4-ThreadLocal-與-supplyAsync-互撞"><a href="#4-ThreadLocal-與-supplyAsync-互撞" class="headerlink" title="4. ThreadLocal 與 supplyAsync 互撞"></a>4. <code>ThreadLocal</code> 與 <code>supplyAsync</code> 互撞</h2><p>查了一下資料和問了 AI, 得到以下的結論:</p>
+<h3 id="4-1-ThreadLocal-的本質"><a href="#4-1-ThreadLocal-的本質" class="headerlink" title="4.1 ThreadLocal 的本質"></a>4.1 <code>ThreadLocal</code> 的本質</h3><p><code>ThreadLocal</code> 是每條執行緒各有一份私有儲存空間。JVM 內部長這樣：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Thread 物件</span><br><span class="line">  └─ threadLocals : ThreadLocalMap</span><br><span class="line">        └─ &#123; ThreadLocal 實例 → 該 thread 存的值 &#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>someThreadLocal.get()</code> 實際上是從<strong>目前執行緒（<code>Thread.currentThread()</code>）的 <code>threadLocals</code></strong> 查值。不同 thread 各有各的 map，<strong>彼此看不到對方</strong>。</p>
+<h3 id="4-2-Servlet-同步模型讓我們產生錯覺"><a href="#4-2-Servlet-同步模型讓我們產生錯覺" class="headerlink" title="4.2 Servlet 同步模型讓我們產生錯覺"></a>4.2 Servlet 同步模型讓我們產生錯覺</h3><p>Servlet 容器處理一個 HTTP 請求時，整條請求鏈（Filter → DispatcherServlet → Controller → Service → Feign client）<strong>都在同一條 request thread 上同步跑</strong>。於是 <code>ThreadLocal</code> 從頭到尾都讀得到同一份值。</p>
+<p>Spring 生態裡大量設施都吃這個紅利：</p>
+<ul>
+<li><code>SecurityContextHolder</code>（Spring Security 身份）</li>
+<li><code>RequestContextHolder</code>（<code>HttpServletRequest</code>）</li>
+<li><code>LocaleContextHolder</code>（語系）</li>
+<li><code>MDC</code>（Logback &#x2F; SLF4J 的日誌關聯欄位）</li>
+<li><code>TransactionSynchronizationManager</code>（當前 transaction）</li>
+</ul>
+<p>這個模型的好處是 context 可以自動跟著請求走，不用每個 method 都塞 <code>userId</code> 參數。</p>
+<h3 id="4-3-CompletableFuture-supplyAsync-破壞了這個假設"><a href="#4-3-CompletableFuture-supplyAsync-破壞了這個假設" class="headerlink" title="4.3 CompletableFuture.supplyAsync 破壞了這個假設"></a>4.3 <code>CompletableFuture.supplyAsync</code> 破壞了這個假設</h3><p>兩個重載：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">CompletableFuture.supplyAsync(Supplier)                  <span class="comment">// 用 ForkJoinPool.commonPool()</span></span><br><span class="line">CompletableFuture.supplyAsync(Supplier, Executor)        <span class="comment">// 用指定的 Executor</span></span><br></pre></td></tr></table></figure>
+
+<p>前者把工作丟到<strong>完全獨立的執行緒池</strong>，新 thread 的 <code>ThreadLocalMap</code> 是空的。任何依賴 context 自動跟著的程式碼在這裡都會破功, 例如 <code>SecurityContextHolder</code>、<code>MDC</code>、<code>TransactionSynchronizationManager</code>、我們自己寫的 <code>UserContextHolder</code> 全部都會中招。</p>
+<p>同類的陷阱還有：<code>@Async</code>、裸 <code>ExecutorService.submit()</code>、Reactor scheduler、<code>ForkJoinPool.invoke()</code> 等等</p>
+<hr>
+<h2 id="5-備選方案"><a href="#5-備選方案" class="headerlink" title="5.備選方案"></a>5.備選方案</h2><p>面對這個 bug 我想了四個方向：</p>
+<h3 id="方案-A：在每個-lambda-手動-set-clear"><a href="#方案-A：在每個-lambda-手動-set-clear" class="headerlink" title="方案 A：在每個 lambda 手動 set&#x2F;clear"></a>方案 A：在每個 lambda 手動 set&#x2F;clear</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">UserContext</span> <span class="variable">ctx</span> <span class="operator">=</span> UserContextHolder.get();</span><br><span class="line"></span><br><span class="line">CompletableFuture&lt;MediaUsageRs&gt; fmd = CompletableFuture.supplyAsync(() -&gt; &#123;</span><br><span class="line">    UserContextHolder.set(ctx);</span><br><span class="line">    <span class="keyword">try</span> &#123; <span class="keyword">return</span> mediaUsagePort.getUsage(); &#125;</span><br><span class="line">    <span class="keyword">finally</span> &#123; UserContextHolder.clear(); &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>沒毛病, 只是有點太打補丁的行為.</p>
+<ul>
+<li><strong>優點</strong>：改動最小，每條 <code>supplyAsync</code> 自己負責搬運。</li>
+<li><strong>缺點</strong>：每個 async 點都要重複寫樣板；未來每新增一個 fan-out UseCase 都要重戰。</li>
+</ul>
+<h3 id="方案-B：抽出-ContextAware-with-ctx-supplier-包裝器"><a href="#方案-B：抽出-ContextAware-with-ctx-supplier-包裝器" class="headerlink" title="方案 B：抽出 ContextAware.with(ctx, supplier) 包裝器"></a>方案 B：抽出 <code>ContextAware.with(ctx, supplier)</code> 包裝器</h3><p>對重複樣板做抽象。比 A 乾淨一點，但責任還是在呼叫端。</p>
+<h3 id="方案-C：自訂-ThreadPoolTaskExecutor-TaskDecorator"><a href="#方案-C：自訂-ThreadPoolTaskExecutor-TaskDecorator" class="headerlink" title="方案 C：自訂 ThreadPoolTaskExecutor + TaskDecorator"></a>方案 C：自訂 <code>ThreadPoolTaskExecutor</code> + <code>TaskDecorator</code></h3><p>讓 executor 每次 submit 時自動把 <code>UserContext</code>（與 <code>MDC</code>）從提交 thread 搬到 worker thread。呼叫端只要指定 executor，完全不用寫任何 set&#x2F;clear。</p>
+<p>看起來是解決之道, 我直接針對這個問題提出適應性補救方案。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">AsyncConfig</span> &#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">USAGE_EXECUTOR</span> <span class="operator">=</span> <span class="string">&quot;usageExecutor&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean(USAGE_EXECUTOR)</span></span><br><span class="line">    Executor <span class="title function_">usageExecutor</span><span class="params">()</span> &#123;</span><br><span class="line">        <span class="type">ThreadPoolTaskExecutor</span> <span class="variable">ex</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolTaskExecutor</span>();</span><br><span class="line">        ex.setCorePoolSize(<span class="number">4</span>); ex.setMaxPoolSize(<span class="number">16</span>); ex.setQueueCapacity(<span class="number">64</span>);</span><br><span class="line">        ex.setThreadNamePrefix(<span class="string">&quot;usage-&quot;</span>);</span><br><span class="line">        ex.setTaskDecorator(<span class="keyword">new</span> <span class="title class_">UserContextTaskDecorator</span>());</span><br><span class="line">        ex.initialize();</span><br><span class="line">        <span class="keyword">return</span> ex;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">UserContextTaskDecorator</span> <span class="keyword">implements</span> <span class="title class_">TaskDecorator</span> &#123;</span><br><span class="line">    <span class="meta">@Override</span> <span class="keyword">public</span> Runnable <span class="title function_">decorate</span><span class="params">(Runnable r)</span> &#123;</span><br><span class="line">        <span class="type">UserContext</span>         <span class="variable">cap</span> <span class="operator">=</span> UserContextHolder.get();</span><br><span class="line">        Map&lt;String,String&gt;  mdc = MDC.getCopyOfContextMap();</span><br><span class="line">        <span class="keyword">return</span> () -&gt; &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">if</span> (cap != <span class="literal">null</span>) UserContextHolder.set(cap);</span><br><span class="line">                <span class="keyword">if</span> (mdc != <span class="literal">null</span>) MDC.setContextMap(mdc);</span><br><span class="line">                r.run();</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123; UserContextHolder.clear(); MDC.clear(); &#125;</span><br><span class="line">        &#125;;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>優點</strong>：一次解決；未來所有 async 點都免費繼承；同時解 MDC 問題。</li>
+<li><strong>缺點</strong>：多兩個類別；需要嚴守「所有 async 都走這個 executor」的紀律。</li>
+</ul>
+<h3 id="方案-D：放棄平行，改同步呼叫"><a href="#方案-D：放棄平行，改同步呼叫" class="headerlink" title="方案 D：放棄平行，改同步呼叫"></a>方案 D：放棄平行，改同步呼叫</h3><p>三次 Feign 順序打。絕對不會踩 <code>ThreadLocal</code> 陷阱，但延遲變成三個的總和，違反這支 API 當初要 fan-out 的初衷。</p>
+<h2 id="6-好像哪裡怪怪的"><a href="#6-好像哪裡怪怪的" class="headerlink" title="6. 好像哪裡怪怪的"></a>6. 好像哪裡怪怪的</h2><p>正當我和 AI 討論要選哪一個的時候, 忽然想到之前工作中使用 BFF 架構, 多數不會讓 Biz-Service 去擁有 Session, 轉念一想:</p>
+<blockquote>
+<p><strong>為什麼這個系統裡，身份這件事需要跨 thread 傳遞？</strong></p>
+</blockquote>
+<p>因為目前的 UseCase 介面是這樣：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MediaUsagePort</span> &#123;</span><br><span class="line">    MediaUsageRs <span class="title function_">getUsage</span><span class="params">()</span>;   <span class="comment">// ← 沒有任何參數</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>這個 method signature 說呼叫我不需要任何輸入。但實際上它<strong>依賴</strong> <code>userId</code>, 只是把 <code>userId</code> 藏在 <code>ThreadLocal</code> 裡。</p>
+<p>這是 <strong>Clean Architecture 在講的隱式依賴（hidden dependency）</strong>：介面上看不見的耦合，讓 UseCase 在跨 thread 場景下突然失效。若我用方案 C 用一個 decorator 修好了這件事，其實沒有解決<strong>拿掉隱式依賴本身</strong>。</p>
+<p>類比：<code>@Transactional</code> 和 <code>SecurityContextHolder</code> 也是這樣, 但它們都是<strong>框架級別的橫切關注</strong>，有文件、有固定語意、全社群預期這樣用。</p>
+<p>因次一開始為了方便, 我設計 BFF 到每個下游 biz-service 都共用一份 <code>UserContextHolder</code>, 這不是框架定義的模式，是我自己複製出來的。<strong>我把框架級別的慣用語，搬到了我自己的業務邊界上。</strong> 這是值得重新評估的。</p>
+<p>回頭看身份實際需要出現在：</p>
+<ul>
+<li><strong>BFF 入口</strong>：JWT 驗完後總得暫存一下供同一個請求用。<code>ThreadLocal</code> 在這裡是合理的。</li>
+<li><strong>BFF → 下游的網路邊界</strong>：這是跨 process，傳遞機制<strong>本來就是 HTTP header</strong>，不是 <code>ThreadLocal</code>。</li>
+<li><strong>下游服務內部</strong>：<code>userId</code> 是業務輸入。Controller &#x2F; UseCase &#x2F; Service 的 method signature 本來就應該把它當成參數。</li>
+</ul>
+<p>結論：</p>
+<blockquote>
+<p><strong><code>ThreadLocal</code> 只在 BFF process 內部合理，跨網路用 header，下游應該全部顯式傳參。</strong></p>
+</blockquote>
+<hr>
+<h2 id="7-拔掉-biz-service-的-ThreadLocal"><a href="#7-拔掉-biz-service-的-ThreadLocal" class="headerlink" title="7. 拔掉 biz-service 的 ThreadLocal"></a>7. 拔掉 biz-service 的 <code>ThreadLocal</code></h2><p>我決定改變前提，做一次完整重構 (又要推石頭啦!!)：</p>
+<h3 id="7-1-BFF-端"><a href="#7-1-BFF-端" class="headerlink" title="7.1 BFF 端"></a>7.1 BFF 端</h3><ul>
+<li><p><strong>保留</strong> <code>JwtAuthFilter</code> + <code>UserContextHolder</code>（request 入口暫存）。</p>
+</li>
+<li><p><strong>Port 介面</strong> 每個 method 第一個參數加 <code>UserContext ctx</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">interface</span> <span class="title class_">MediaUsagePort</span> &#123;</span><br><span class="line">    MediaUsageRs <span class="title function_">getUsage</span><span class="params">(UserContext ctx)</span>;   <span class="comment">// 顯式參數</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>UseCase</strong> 只在入口讀一次 <code>UserContextHolder.get()</code>，然後把 ctx 當參數傳給 Port。<br>在 <code>supplyAsync</code> 的 lambda 裡，ctx 自然被 closure 捕獲，跨 thread 沒事。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">UserContext</span> <span class="variable">ctx</span> <span class="operator">=</span> UserContextHolder.get();   <span class="comment">// 在 request thread</span></span><br><span class="line">CompletableFuture&lt;MediaUsageRs&gt; fmd =</span><br><span class="line">    CompletableFuture.supplyAsync(() -&gt; mediaUsagePort.getUsage(ctx), usageExecutor);</span><br><span class="line"><span class="comment">//                                                          ↑</span></span><br><span class="line"><span class="comment">//                                               lambda closure 自己帶</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>Feign API</strong> 每個方法宣告所需的 <code>@RequestHeader</code>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/internal/users/me/media-usage&quot;)</span></span><br><span class="line">ApiResponse&lt;MediaUsageRs&gt; <span class="title function_">getMediaUsage</span><span class="params">(<span class="meta">@RequestHeader(&quot;X-User-Id&quot;)</span> Long userId)</span>;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>刪除</strong> <code>UserContextFeignInterceptor</code>：不再有「讀 ThreadLocal 塞 header」的隱式行為；<br>每個 Feign API 自己宣告需要哪些 headers。</p>
+</li>
+<li><p><strong><code>UserContextTaskDecorator</code> → <code>MdcTaskDecorator</code></strong>：decorator 只剩 MDC 傳遞（因為<br>log correlation 無法走參數）；身份傳遞交還給 method signature。</p>
+</li>
+</ul>
+<h3 id="7-2-下游三個-biz-service-端"><a href="#7-2-下游三個-biz-service-端" class="headerlink" title="7.2 下游三個 biz-service 端"></a>7.2 下游三個 biz-service 端</h3><ul>
+<li><p><strong>刪除</strong> 每個 service 的 <code>InternalAuthFilter</code>。</p>
+</li>
+<li><p><strong>Controller</strong> 用 <code>@RequestHeader(&quot;X-User-Id&quot;) Long userId</code> 顯式接參數：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/media-usage&quot;)</span></span><br><span class="line"><span class="keyword">public</span> ResponseEntity&lt;ApiResponse&lt;MediaUsageRs&gt;&gt; <span class="title function_">getMediaUsage</span><span class="params">(</span></span><br><span class="line"><span class="params">        <span class="meta">@RequestHeader(&quot;X-User-Id&quot;)</span> Long userId)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> ResponseEntity.ok(ApiResponse.success(getMediaUsageUseCase.execute(userId)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>UseCase &#x2F; Service</strong> 全部把 <code>userId</code>（或 <code>Plan</code>）做成顯式 method 參數，不再讀<br><code>UserContextHolder</code>。</p>
+</li>
+</ul>
+<h3 id="7-3-原本-async-bug-從根本上消失"><a href="#7-3-原本-async-bug-從根本上消失" class="headerlink" title="7.3 原本 async bug 從根本上消失"></a>7.3 原本 async bug 從根本上消失</h3><p>對比一下兩個方案：</p>
+<table>
+<thead>
+<tr>
+<th>項目</th>
+<th>方案 C（decorator）</th>
+<th>最終方案（顯式傳參）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>bug 有沒有可能再發生</td>
+<td>要記得用 decorated executor，忘了就中</td>
+<td>不可能——<code>userId</code> 就是 method 參數</td>
+</tr>
+<tr>
+<td>新 UseCase 成本</td>
+<td>免費繼承</td>
+<td>signature 多一個參數</td>
+</tr>
+<tr>
+<td>下游服務 ThreadLocal</td>
+<td>保留</td>
+<td><strong>完全拿掉</strong></td>
+</tr>
+<tr>
+<td>隱式依賴</td>
+<td>仍透過 ThreadLocal</td>
+<td>零（所有依賴在簽名上）</td>
+</tr>
+<tr>
+<td>測試成本</td>
+<td>需要 mock ThreadLocal</td>
+<td>直接傳參，Mockito 直觀</td>
+</tr>
+<tr>
+<td>未來加 tracing &#x2F; MDC</td>
+<td>decorator 共享</td>
+<td>decorator 只管 MDC，簡化責任</td>
+</tr>
+<tr>
+<td>HTTP 契約</td>
+<td>由 interceptor 隱式塞</td>
+<td>由 Feign API 明確宣告</td>
+</tr>
+</tbody></table>
+<h3 id="7-4-over-engineering"><a href="#7-4-over-engineering" class="headerlink" title="7.4 over-engineering"></a>7.4 over-engineering</h3><p>一開始想用方案 C 達到對症下藥, 但實際上午可以讓這個病症完全不會出現, 兩者看似都可以工作，但：</p>
+<ol>
+<li><strong>規則數量不同</strong>：方案 C 需要一條規則, 所有 async 必須用 decorated executor；而最終方案不需要這條規則。</li>
+<li><strong>可驗證性不同</strong>：方案 C 漏寫的後果是正式環境 NPE；最終方案漏寫的後果是<strong>編譯失敗</strong>。</li>
+<li><strong>隱式依賴的擴散</strong>：方案 C 的前提是全 codebase 都同意 <code>ThreadLocal</code> 為身份載體。最終方案把這個前提縮小到 BFF 入口。</li>
+</ol>
+<blockquote>
+<p><strong>當一個規則是不要犯錯時，你終究會犯錯。但當一個規則是錯了就不能編譯時, 就能提前預知</strong></p>
+</blockquote>
+<p>之前設計一些架構的時候, 我們會在父類別方法內直接拋錯誤, 強制子類別去 Override, 也是類似的概念.</p>
+<hr>
+<h3 id="7-5-最後的-UseCase-長這樣"><a href="#7-5-最後的-UseCase-長這樣" class="headerlink" title="7.5 最後的 UseCase 長這樣"></a>7.5 最後的 UseCase 長這樣</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> UsageRs <span class="title function_">execute</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">UserContext</span> <span class="variable">ctx</span>  <span class="operator">=</span> UserContextHolder.get();</span><br><span class="line">    <span class="type">Plan</span>        <span class="variable">plan</span> <span class="operator">=</span> ctx.getPlan();</span><br><span class="line"></span><br><span class="line">    CompletableFuture&lt;WorkspaceUsageRs&gt; fws = CompletableFuture.supplyAsync(</span><br><span class="line">            () -&gt; workspaceUsagePort.getUsage(ctx), usageExecutor);</span><br><span class="line">    CompletableFuture&lt;MediaUsageRs&gt;     fmd = CompletableFuture.supplyAsync(</span><br><span class="line">            () -&gt; mediaUsagePort.getUsage(ctx),     usageExecutor);</span><br><span class="line">    CompletableFuture&lt;RecordingUsageDto&gt; frec = CompletableFuture.supplyAsync(() -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">return</span> recordingUsagePort.getUsage(ctx);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            log.warn(<span class="string">&quot;Recording usage degraded to 0: &#123;&#125;&quot;</span>, e.getMessage());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">RecordingUsageDto</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, usageExecutor);</span><br><span class="line">    <span class="comment">// join / assemble ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>注意有兩件事都做到了：</p>
+<ul>
+<li>用了<strong>有 decorator 的</strong> executor（<code>usageExecutor</code>），所以 MDC 能跨 thread。</li>
+<li>身份是 <code>ctx</code>，不是 <code>ThreadLocal</code>, lambda 直接閉包進去。</li>
+</ul>
+<hr>
+<h2 id="結語"><a href="#結語" class="headerlink" title="結語"></a>結語</h2><h3 id="技術與架構教訓"><a href="#技術與架構教訓" class="headerlink" title="技術與架構教訓"></a>技術與架構教訓</h3><ul>
+<li><strong>凡是 <code>ThreadLocal</code> 撐住的 context，一旦跨 thread 就會遺失。</strong> <code>@Transactional</code>、<code>SecurityContextHolder</code>、<code>MDC</code>、<code>RequestContextHolder</code> 全部一樣。看到 <code>supplyAsync</code>沒帶 Executor，要立刻警覺。</li>
+<li><strong><code>CompletableFuture.supplyAsync(Supplier)</code> 是 trap。</strong> 不僅 context 會掉，還會用 CPU-bound 設計的 <code>commonPool</code> 跑 blocking I&#x2F;O。</li>
+<li><strong>MDC 跨 thread 需要 <code>TaskDecorator</code>；身份跨 thread 可以（而且最好）用 method 參數。</strong> 兩件事責任不同。</li>
+<li><strong>Bug 本身常常只是徵兆。真正的問題是設計允許這個徵兆存在。</strong> 修徵兆是短線思維，質疑前提是長線思維。</li>
+<li>**<code>ThreadLocal</code> 屬於 framework 級別的橫切關注，不應該成為你家業務邊界的傳遞機制。**跨網路邊界請用網路協定（HTTP header），跨語言邊界請用明確契約，跨函式呼叫請用參數。</li>
+<li><strong>判斷是否該擁抱隱式：問問「這條規則如果違反，會不會自動失敗？」</strong> 會 → 隱式 OK；不會 → 做成顯式。</li>
+</ul>
+<p>在這個過程中我差點就停在方案 C, 然後趕下一個 Feature 了, 其實可以想一下為什麼這個 bug 有存在的可能性.</p>
+<p>然後在 ThreadLocal 的跨服務使用上還是栽了跟頭, 原本在單體架構下 <code>ThreadLocal</code> 就很難出現這樣的問題, 果然微服務還是有很多的經驗要在實作的時候才會發現。</p>
+<p>有趣的是在文章發布前我跟 M 老弟 (跳舞認識的工程師) 討論這個話題的時候, 他問說如果未來有新的橫切關注點加入 (例如特定的 AOP 稽核紀錄需要更多 User 資訊)，我會傾向於繼續擴充 UserContext 物件，還是會考慮重新引入某種受控的 TaskDecorator?</p>
+<p>而我說會考慮將它封裝成一個特定的 Request Context , 新的內容就不擴增在 header 內, 而是多建立一個封裝物件.</p>
+<p>M 老弟說他要當我上線的第一個用戶, 並分享了一段破碎的名言, 大意是簡單優於複雜, 我回去查了一下, 原來是 Python 社群的名言 (M 老弟你不是寫 Ruby on Rails 的嗎?):</p>
+<blockquote>
+<p>“Explicit is better than implicit. Simple is better than complex.” —— The Zen of Python</p>
+</blockquote>
+<p>最後是內心的一些小感嘆, 畢竟人在設計架構上都會犯錯, 或是沒有用到最佳的方法, 而且架構改動要敢做，但要有測試和規範兜底.</p>
+<p>這一次的改動有 30+ signature, 依靠整個系統一開始就有 Clean Architecture 分層, 加上有 AI 可以協助更新, 其實修改起來非常快, 回想起之前工作的時候看到那些改不動的設計, 除去不熟悉業務邏輯外, 真正可怕的是程式的耦合, 因此經過這次修改後, 我也更堅信自己設計與遵守這些準則是對的。</p>
+</div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/develop/">develop</a><a class="link-muted mr-2" rel="tag" href="/tags/VoxelMD/">VoxelMD</a><a class="link-muted mr-2" rel="tag" href="/tags/AI/">AI</a><a class="link-muted mr-2" rel="tag" href="/tags/Vibe-Code/">Vibe Code</a><a class="link-muted mr-2" rel="tag" href="/tags/Thread/">Thread</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2026/04/28/voxelmd-2-vibe-code/"><span class="level-item">VoxelMD | 2. 關於 Vibe Code 開發心得與架構規範</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/PIX.png" alt="William Wu"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">William Wu</p><p class="is-size-6 is-block">Hope you find solution here</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Taiwan</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives/"><p class="title">29</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories/"><p class="title">5</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags/"><p class="title">38</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/Williamrightone" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/Williamrightone"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="LinkedIn" href="https://www.linkedin.com/in/william-wu-786857142"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="CakeResume" href="https://www.cake.me/willy4543"><i class="fas fa-user-tie"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><!--!--><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/Design-Pattern/"><span class="level-start"><span class="level-item">Design Pattern</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/categories/Development/"><span class="level-start"><span class="level-item">Development</span></span><span class="level-end"><span class="level-item tag">16</span></span></a></li><li><a class="level is-mobile" href="/categories/Life/"><span class="level-start"><span class="level-item">Life</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/categories/Troll/"><span class="level-start"><span class="level-item">Troll</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/categories/develop/"><span class="level-start"><span class="level-item">develop</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-28T23:07:53.000Z">2026-04-29</time></p><p class="title"><a href="/2026/04/29/voxelmd-3-threadlocal/">VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-27T20:01:45.000Z">2026-04-28</time></p><p class="title"><a href="/2026/04/28/voxelmd-2-vibe-code/">VoxelMD | 2. 關於 Vibe Code 開發心得與架構規範</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-26T03:41:48.000Z">2026-04-26</time></p><p class="title"><a href="/2026/04/26/voxelmd-1-intro/">VoxelMD | 1. Markdown 文件管理與智慧語音專案</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-03-03T14:47:27.000Z">2026-03-03</time></p><p class="title"><a href="/2026/03/03/2026-Pingxi-Sky-Lantern-Festival/">2026 平溪天燈節心得 (3/3 十分場)</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-02-25T11:38:51.000Z">2026-02-25</time></p><p class="title"><a href="/2026/02/25/about-bff/">Orchestrator Saga | 關於 Backend for Frontend 的引入實作</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2026/04/"><span class="level-start"><span class="level-item">April 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/03/"><span class="level-start"><span class="level-item">March 2026</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/02/"><span class="level-start"><span class="level-item">February 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/01/"><span class="level-start"><span class="level-item">January 2026</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/12/"><span class="level-start"><span class="level-item">December 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/11/"><span class="level-start"><span class="level-item">November 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/10/"><span class="level-start"><span class="level-item">October 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/09/"><span class="level-start"><span class="level-item">September 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/08/"><span class="level-start"><span class="level-item">August 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/06/"><span class="level-start"><span class="level-item">June 2025</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/04/"><span class="level-start"><span class="level-item">April 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/03/"><span class="level-start"><span class="level-item">March 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/02/"><span class="level-start"><span class="level-item">February 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/AI/"><span class="tag">AI</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Agile/"><span class="tag">Agile</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BFF/"><span class="tag">BFF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Cache/"><span class="tag">Cache</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Casha/"><span class="tag">Casha</span><span class="tag">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Clean-Architecture/"><span class="tag">Clean Architecture</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DB/"><span class="tag">DB</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DDD/"><span class="tag">DDD</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Design-Pattern/"><span class="tag">Design Pattern</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DevOps/"><span class="tag">DevOps</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Exception/"><span class="tag">Exception</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Garage/"><span class="tag">Garage</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Grafana/"><span class="tag">Grafana</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Jmeter/"><span class="tag">Jmeter</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Life/"><span class="tag">Life</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MQ/"><span class="tag">MQ</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MinIO/"><span class="tag">MinIO</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Observation/"><span class="tag">Observation</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Prometheus/"><span class="tag">Prometheus</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/RBAC/"><span class="tag">RBAC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Redis/"><span class="tag">Redis</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rstar/"><span class="tag">Rstar</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/S3-Bucket/"><span class="tag">S3 Bucket</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SDLC/"><span class="tag">SDLC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SOLID/"><span class="tag">SOLID</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Saga/"><span class="tag">Saga</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Cloud/"><span class="tag">Spring Cloud</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-boot/"><span class="tag">Spring boot</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/System-Design/"><span class="tag">System Design</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Thread/"><span class="tag">Thread</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vibe-Code/"><span class="tag">Vibe Code</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/VoxelMD/"><span class="tag">VoxelMD</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/chit-chat/"><span class="tag">chit-chat</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/colorly/"><span class="tag">colorly</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/develop/"><span class="tag">develop</span><span class="tag">25</span></a></div><div class="control"><a class="tags has-addons" href="/tags/flow/"><span class="tag">flow</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/github-Actions/"><span class="tag">github Actions</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/troll/"><span class="tag">troll</span><span class="tag">2</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a><p class="is-size-7"><span>&copy; 2026 William Wu</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2025</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "This website uses cookies to improve your experience.",
+          dismiss: "Got it!",
+          allow: "Allow cookies",
+          deny: "Decline",
+          link: "Learn more",
+          policy: "Cookie Policy",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
