@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>VoxelMD | 4. 上線 TTS 優化案例與心得 - William Right&#039;s Blog</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="William Right&#039;s Blog"><meta name="msapplication-TileImage" content="/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="William Right&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="在我沒日沒夜的爆肝下, 總算在今天兩點成功部署了 VoxelMD Beta 版本, 由於之前沒有獨立搭建過 K8s, 這次花了一些時間. 上線後馬上給友人測試, 結果生成一個音檔要花 7 分鐘, 笑死, 馬上來處理第一單..."><meta property="og:type" content="blog"><meta property="og:title" content="VoxelMD | 4. 上線 TTS 優化案例與心得"><meta property="og:url" content="https://williamrightone.github.io/2026/05/05/voxelmd-4-infra-optimal/"><meta property="og:site_name" content="William Right&#039;s Blog"><meta property="og:description" content="在我沒日沒夜的爆肝下, 總算在今天兩點成功部署了 VoxelMD Beta 版本, 由於之前沒有獨立搭建過 K8s, 這次花了一些時間. 上線後馬上給友人測試, 結果生成一個音檔要花 7 分鐘, 笑死, 馬上來處理第一單..."><meta property="og:locale" content="en_US"><meta property="og:image" content="https://williamrightone.github.io/img/voxelmd-4/v4-cover.png"><meta property="article:published_time" content="2026-05-04T22:18:17.000Z"><meta property="article:modified_time" content="2026-05-05T06:55:44.054Z"><meta property="article:author" content="William Wu"><meta property="article:tag" content="develop"><meta property="article:tag" content="VoxelMD"><meta property="article:tag" content="AI"><meta property="article:tag" content="Vibe Code"><meta property="article:tag" content="devops"><meta property="article:tag" content="optimization"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://williamrightone.github.io/img/voxelmd-4/v4-cover.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://williamrightone.github.io/2026/05/05/voxelmd-4-infra-optimal/"},"headline":"VoxelMD | 4. 上線 TTS 優化案例與心得","image":["https://williamrightone.github.io/img/voxelmd-4/v4-cover.png"],"datePublished":"2026-05-04T22:18:17.000Z","dateModified":"2026-05-05T06:55:44.054Z","author":{"@type":"Person","name":"William Wu"},"publisher":{"@type":"Organization","name":"William Right's Blog","logo":{"@type":"ImageObject","url":"https://williamrightone.github.io/img/PIX.png"}},"description":"在我沒日沒夜的爆肝下, 總算在今天兩點成功部署了 VoxelMD Beta 版本, 由於之前沒有獨立搭建過 K8s, 這次花了一些時間. 上線後馬上給友人測試, 結果生成一個音檔要花 7 分鐘, 笑死, 馬上來處理第一單..."}</script><link rel="canonical" href="https://williamrightone.github.io/2026/05/05/voxelmd-4-infra-optimal/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=G-S29D3Z45V4" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-S29D3Z45V4');</script><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><div class="card-image"><span class="image is-7by3"><img class="fill" src="/img/voxelmd-4/v4-cover.png" alt="VoxelMD | 4. 上線 TTS 優化案例與心得"></span></div><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2026-05-04T22:18:17.000Z" title="2026/5/5 上午6:18:17">2026-05-05</time></span><span class="level-item">Updated&nbsp;<time dateTime="2026-05-05T06:55:44.054Z" title="2026/5/5 下午2:55:44">2026-05-05</time></span><span class="level-item"><a class="link-muted" href="/categories/Development/">Development</a></span><span class="level-item">16 minutes read (About 2434 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">VoxelMD | 4. 上線 TTS 優化案例與心得</h1><div class="content"><p>在四月中的靈光一閃, 讓我開始了 VoxelMD 的 Vibe Coding 之路, 終於在今天凌晨搞定了 ArgoCD 和 Helm Chart(真的是有點複雜), 並利用 Cloudflare tunnel 把服務導入到我自行架設的 K8s 內了.</p>
+<hr>
+<h2 id="上線第一單-音檔生成過久"><a href="#上線第一單-音檔生成過久" class="headerlink" title="上線第一單, 音檔生成過久"></a>上線第一單, 音檔生成過久</h2><p>在 Beta 版上線後, 由於沒有 UAT 環境, 我開了測試帳號給 P 君(也是我跳舞認識的朋友), 結果他只回我一句話:</p>
+<blockquote>
+<p>卡了</p>
+</blockquote>
+<p><del>Damn</del> 跟我之前的 QA 還有分析師一樣惜字如金, 忽然有一點血壓升高的感覺, 登入進去看了一下, <del>這個 Bastard</del>他直接貼了一段 Serena 的 README 到裡面生成語音, 由於我設計 Kokoro Service 走非同步的流程, 前端會每格兩秒 polling 一次, 我自己測試了一下。</p>
+<p><img src="/../img/voxelmd-4/polling.png" alt="What the..."></p>
+<p>好嘛, 202 個 requests, 生成了一個 12 分 27 秒的音檔, 換算下來跑了大概七分鐘, UX 零分, 上線不到一分鐘直接被開單, 笑死。</p>
+<h3 id="問題分析"><a href="#問題分析" class="headerlink" title="問題分析"></a>問題分析</h3><p><strong>用戶行為:</strong></p>
+<ul>
+<li>用戶在 Editor 完成 Markdown 內容, 點選 <code>Regenerate</code> 按鈕。</li>
+<li>前端對 <code>GET /api/v1/workspaces/&#123;wsId&#125;/articles/&#123;articleId&#125;/tts?voice=af_bella</code> 持續 polling。</li>
+<li>每次 polling 收到:<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;responseCode&quot;</span><span class="punctuation">:</span> <span class="string">&quot;00000&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;msg&quot;</span><span class="punctuation">:</span> <span class="string">&quot;ok&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;data&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;status&quot;</span><span class="punctuation">:</span> <span class="string">&quot;generating&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;audioUrl&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">null</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;audioUrlExpiresAt&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">null</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;contentHash&quot;</span><span class="punctuation">:</span> <span class="string">&quot;196c8d3ff387ba10d8183f9a048a113d&quot;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;voice&quot;</span><span class="punctuation">:</span> <span class="string">&quot;af_bella&quot;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;success&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure></li>
+<li>直到 Kokoro 完成合成、tts-service 把音檔上傳 S3 並 <code>setReady</code>,才回傳 <code>status: &quot;ready&quot;</code> 與 audioUrl。</li>
+</ul>
+<p><strong>實際的 API Flow:</strong></p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">Browser</span><br><span class="line">  │  POST /api/v1/workspaces/&#123;wsId&#125;/articles/&#123;articleId&#125;/tts/regenerate</span><br><span class="line">  ▼</span><br><span class="line">Web BFF (JWT validation + routing)</span><br><span class="line">  │  internal Feign <span class="keyword">call</span></span><br><span class="line">  ▼</span><br><span class="line">tts-service</span><br><span class="line">  │  TtsServiceImpl#forceRegenerate</span><br><span class="line">  │    <span class="number">1</span>) 刪除既有 S3 物件</span><br><span class="line">  │    <span class="number">2</span>) Redis setGenerating (TTL <span class="number">600</span>s)</span><br><span class="line">  │    <span class="number">3</span>) 透過 RabbitMQ 派工 TtsGenerationTask</span><br><span class="line">  ▼</span><br><span class="line">RabbitMQ queue: tts.generation.run</span><br><span class="line">  │  (default concurrency = <span class="number">1</span>)</span><br><span class="line">  ▼</span><br><span class="line">TtsGenerationListener (tts-service Pod)</span><br><span class="line">  │    <span class="number">1</span>) ArticlePort.getArticleContent → raw Markdown</span><br><span class="line">  │    <span class="number">2</span>) TtsPreprocessor.stripMarkdown → narratable text</span><br><span class="line">  │    <span class="number">3</span>) KokoroTtsPort.synthesize(plainText, voice)  ← ★ 同步等整篇 MP3 byte[]</span><br><span class="line">  │    <span class="number">4</span>) ObjectStoragePort.uploadMp3</span><br><span class="line">  │    <span class="number">5</span>) statusCache.setReady</span><br><span class="line">  ▼</span><br><span class="line">前端 polling 看到 status=ready 才停止</span><br></pre></td></tr></table></figure>
+
+<p>在盤點流程後, 就可以進行進一步的分析:</p>
+<p><strong>硬體拓樸:</strong></p>
+<table>
+<thead>
+<tr>
+<th>角色</th>
+<th>機器</th>
+<th>規格</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Worker</td>
+<td><strong>vox-worker-3 (VMware VM)</strong></td>
+<td><strong>6 vCPU &#x2F; 52 GB</strong></td>
+<td><strong>中間件,含 Kokoro</strong></td>
+</tr>
+</tbody></table>
+<p>關鍵限制:</p>
+<ul>
+<li>worker-3 是 <strong>VMware Workstation VM</strong>,<strong>不支援 GPU passthrough</strong>。</li>
+<li>Edge host 上用的 GPU 是 GT 1030 即使 passthrough 可行,2GB VRAM、無 Tensor Core, 對 Kokoro 提升僅 1.5~2x,工程成本不划算。</li>
+<li><strong>整個架構在可預見的將來都是 CPU 推理</strong>,優化只能往 CPU 路線走。</li>
+</ul>
+<p><strong>kokoro container:</strong></p>
+<p>沒有設定 OMP_NUM_THREADS &#x2F; ONNX_NUM_THREADS 等 thread 環境變數.</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">image:</span> <span class="string">ghcr.io/remsky/kokoro-fastapi-cpu:latest</span></span><br><span class="line"><span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line"><span class="attr">strategy:</span> &#123; <span class="attr">type:</span> <span class="string">Recreate</span> &#125;</span><br><span class="line"><span class="attr">nodeSelector:</span> &#123; <span class="attr">node-role:</span> <span class="string">middleware</span> &#125;   <span class="comment"># → vox-worker-3</span></span><br><span class="line"><span class="attr">resources:</span></span><br><span class="line">  <span class="attr">requests:</span> &#123; <span class="attr">cpu:</span> <span class="number">1</span>, <span class="attr">memory:</span> <span class="string">2Gi</span> &#125;</span><br><span class="line">  <span class="attr">limits:</span>   &#123; <span class="attr">cpu:</span> <span class="number">4</span>, <span class="attr">memory:</span> <span class="string">6Gi</span> &#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>根因分析:</strong></p>
+<p><code>OMP_NUM_THREADS</code> &#x2F; <code>ONNX_NUM_THREADS</code> 預設行為:</p>
+<ul>
+<li>多數 OpenMP &#x2F; ONNX runtime 在沒設定時,<strong>會偵測容器看到的 CPU 數</strong>,但在 cgroup 限制下偵測往往失準,常常退化成 <strong>單緒</strong>。</li>
+<li>即使容器看到 4 核(limits),沒明確設定環境變數,實務上 Kokoro 常常只用 1 緒。</li>
+</ul>
+<blockquote>
+<p>Measure first, optimize second</p>
+</blockquote>
+<p>由於 Beta 版本還沒有引入 <code>Prometheus + Grafana + Jaeger</code>, 預計先針對瓶頸方法補上 <code>結構化計時 log + Micrometer Timer</code>, 紀錄一下確切的前後時間; 否則改完無法證明改善幅度,也分不清是 Kokoro 變快、還是 article-service &#x2F; S3 &#x2F; 其他 stage 改善.</p>
+<h3 id="Optimization-Plan"><a href="#Optimization-Plan" class="headerlink" title="Optimization Plan"></a>Optimization Plan</h3><p>Tier 1 具體做兩件事:</p>
+<p><strong>(a) Stage 計時結構化 log</strong>:<br>把 <code>TtsGenerationListener</code> 分成 fetch &#x2F; preprocess &#x2F; kokoro &#x2F; s3 四個階段, 各記耗時, 合併成一行 log, 並算出 RTF (Real-Time Factor)。透過 <code>kubectl logs</code> 直接拿前後對照數據。</p>
+<p><strong>(b) Micrometer Timer</strong>:<br>在 Kokoro 呼叫處加 <code>tts.synthesize.duration</code> Timer (tag: voice), 在 listener 入口&#x2F;出口加 <code>tts.pipeline.duration</code> Timer(tag: voice、outcome)。</p>
+<p>驗證方式不需要 Prometheus, 直接 port-forward 拉 actuator endpoint:</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n voxelmd port-forward svc/tts-service 8090:8090</span><br><span class="line">curl http://localhost:8090/actuator/metrics/tts.synthesize.duration</span><br><span class="line">curl http://localhost:8090/actuator/metrics/tts.pipeline.duration</span><br></pre></td></tr></table></figure>
+
+<p>回傳會有 <code>count</code>、<code>mean</code>、<code>max</code> 作為改動前後的對照基線。同樣的指標等之後上 Prometheus 時自動就能 scrape, 無痛升級。</p>
+<h3 id="測試"><a href="#測試" class="headerlink" title="測試"></a>測試</h3><table>
+<thead>
+<tr>
+<th>階段</th>
+<th>fetch</th>
+<th>preprocess</th>
+<th>kokoro</th>
+<th>s3</th>
+<th>total</th>
+<th>audioSec</th>
+<th>RTF</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Phase 0 baseline</td>
+<td>88</td>
+<td>24</td>
+<td>496232</td>
+<td>1273</td>
+<td>497621</td>
+<td>747.4</td>
+<td>0.664</td>
+</tr>
+</tbody></table>
+<p>解讀一下數據:</p>
+<ul>
+<li>audioSec  &#x3D; 747.4s   (12:27 音檔)</li>
+<li>chars     &#x3D; 11,975   (~1.2 萬字, 痾確實很長…)</li>
+<li>kokoro    &#x3D; 496,232ms ≈ 8 分 16 秒</li>
+<li>total     &#x3D; 497,621ms ≈ 8 分 17 秒</li>
+<li>fetch + preprocess + s3 &#x3D; 1,385ms (0.28%)</li>
+<li>RTF       &#x3D; 0.664</li>
+</ul>
+<p>結論明確:</p>
+<p>Kokoro 占 99.7% 總時間, article-service Feign &#x2F; preprocessor &#x2F; Garage S3 都不是問題, RTF 0.664 完全符合「單緒 CPU」預測(單緒典型 0.5–0.7), 跟 polling ~202 次的觀察差不多 (202 × 2.0s ≈ 404s, 實際 497s, polling 是抓概數而已).</p>
+<p>下一步則是藉由修改 Kokoro Deployment, 讓 Kokoro 用滿 CPU limit (4 vCPU).</p>
+<h3 id="優化-Kokoro-cpu"><a href="#優化-Kokoro-cpu" class="headerlink" title="優化 Kokoro cpu"></a>優化 Kokoro cpu</h3><p>基本上直接修改 OpenMP &#x2F; ONNX &#x2F; MKL &#x2F; OpenBLAS thread 數.</p>
+<figure class="highlight cmd"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">kubectl -n middleware <span class="built_in">set</span> env deployment/kokoro \</span><br><span class="line">  OMP_NUM_THREADS=<span class="number">4</span> \</span><br><span class="line">  MKL_NUM_THREADS=<span class="number">4</span> \</span><br><span class="line">  ONNX_NUM_THREADS=<span class="number">4</span> \</span><br><span class="line">  OPENBLAS_NUM_THREADS=<span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>這裡有趣的來了 !!!</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>階段</th>
+<th>日期</th>
+<th>fetch</th>
+<th>preprocess</th>
+<th>kokoro</th>
+<th>s3</th>
+<th>total</th>
+<th>audioSec</th>
+<th>RTF</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Phase 0 baseline</td>
+<td>2026-05-05</td>
+<td>88</td>
+<td>24</td>
+<td>496232</td>
+<td>1273</td>
+<td>497621</td>
+<td>747.4</td>
+<td>0.664</td>
+</tr>
+<tr>
+<td>4 核 (cold)</td>
+<td>2026-05-05</td>
+<td>98</td>
+<td>23</td>
+<td>565452</td>
+<td>716</td>
+<td>566292</td>
+<td>747.4</td>
+<td>0.757</td>
+</tr>
+<tr>
+<td>4 核 (warm)</td>
+<td>2026-05-05</td>
+<td>79</td>
+<td>10</td>
+<td>413927</td>
+<td>374</td>
+<td>414393</td>
+<td>747.4</td>
+<td>0.554</td>
+</tr>
+<tr>
+<td>6 核 (warm)</td>
+<td>2026-05-05</td>
+<td>39</td>
+<td>5</td>
+<td>375268</td>
+<td>492</td>
+<td>375807</td>
+<td>747.4</td>
+<td>0.502</td>
+</tr>
+</tbody></table>
+<p>首先是 cold &amp; warm, 一開始改 4 核去跑, 時間竟然還增加了快 14%, 差點吐血, 問了一下 AI, 結果是因為重啟 Kokoro 服務, 首次會將模型載入記憶體導致耗費一些時間, 在逕行第二次以及新增到 6 核心之前都做一次預熱, 就能看到 RTF 往下掉了。</p>
+<p>But !</p>
+<p>6 核 RTF 雖然壓到 0.502, 但改善已遞減, Kokoro CPU 推論已碰到 <del>登峰造極</del> 天花板, 再衝 7 核效益預估 &lt; 5%(&lt;20s), 但代價是其他中間件 burst 時被擠壓, 因此:</p>
+<blockquote>
+<p>從 6:15 再往下<strong>要靠架構改變</strong>, 不是 CPU 配置。</p>
+</blockquote>
+<h3 id="借鏡與研究"><a href="#借鏡與研究" class="headerlink" title="借鏡與研究"></a>借鏡與研究</h3><p>這時我回頭去觀察了 <a target="_blank" rel="noopener" href="https://typecast.ai/">typecast.ai</a>, 我發現他是將各個文章依照段落切成小塊, 並且在更新時馬上就往後端打過去:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;project&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;actorVersions&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;default&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SSFM-V3.0&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;children&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;paragraph&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;actorId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SSFM-V3.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;children&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">          <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Serena provides essential semantic code retrieval, editing, refactoring and debugging tools...&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;styleLabel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;normal-1&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;tempo&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">          <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;paragraph&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;actorId&quot;</span><span class="punctuation">:</span> <span class="string">&quot;SSFM-V3.0&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;children&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">          <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;The architecture allows for parallel processing of these segments, solving the latency issue...&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;styleLabel&quot;</span><span class="punctuation">:</span> <span class="string">&quot;normal-1&quot;</span><span class="punctuation">,</span></span><br><span class="line">            <span class="attr">&quot;tempo&quot;</span><span class="punctuation">:</span> <span class="number">1</span></span><br><span class="line">          <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">]</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="comment">// 以下還有一大堆的段落, 有興趣可以自行去掀裙底</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>藉由小段的平行輸入, 最終整合成一整段的語音回來, 這個設計完美解決了單一段落過長的問題, 但是在整合音檔和前端上就需要額外下一點功夫。</p>
+<p><img src="/../img/voxelmd-4/typecast.png" alt="typecast ai 多斷落的處理方法"></p>
+<h3 id="其實我還有一招"><a href="#其實我還有一招" class="headerlink" title="其實我還有一招"></a>其實我還有一招</h3><p>在參考 typecast.ai 的做法後, 我內心大概知道 Beta2.0 是必要做到<strong>文章分段平行合成</strong>這個功能, 藉由 chars 切成多段, 每段抓生成時間小於 2 ~ 3 秒, 因為 ONNX 在小 batch 下對 thread 數應該沒那麼敏感, 多個小 request 的總和時間應該會 &lt;&lt; 一個大 request.</p>
+<p>雖然說把段落切開做語音是必要的, 但是對於目前的 effort 太大, 針對當前的問題, 我其實還有一個方法, 就是在 Beta2.0 前, 針對 Free Plan 的人想要生成語音, 先估算一下多少文字會導致等待超過 15 秒, 然後在 service 裏先實作 Strategy Pattern, 讓 Free Plan 檢查文字過多則禁止生成, 並推薦用戶建立多個 article 分散語音長度, 未來可以再把閥值拉高, 同時也能起到防止用戶胡亂輸入的情境。</p>
+<blockquote>
+<p>遇到問題可以不用硬幹, 藉由需求更新其實能導出不同的解法</p>
+</blockquote>
+<p>在過往的工作經驗上, 也滿常遇到類似的問題, 通常這時候會拉一個會議進行討論, 多半可以得到不錯的結果, 當然前提是我們要先提出合理的 Alternative Solutions.</p>
+<h3 id="最終作法"><a href="#最終作法" class="headerlink" title="最終作法"></a>最終作法</h3><p>首先藉由估算與測試, 500 chars 大概會花費約 15 秒上下, 算是一個人能夠等待的最大時間, 故先更新成 Free Plan 生成語音限定在 500 chars 內.</p>
+<p>不過 500 chars 真的很少… 就算是我自己也不太夠用, 下一次的功能更新也是勢在必行了.</p>
+<hr>
+<h2 id="結語"><a href="#結語" class="headerlink" title="結語"></a>結語</h2><p>這一次算是一個 step by step 的優化, 同時也做了最適合業務現狀的妥協與規劃, 但另外一方面也是知道做這一個 Feature, 他的核心技術其實是在處理這一塊上面, 我想更新完這個 Feature 後在寫一篇文章介紹這個做法吧。</p>
+<p>這個情境讓我想起之前在處理銀行外幣交易的時候曾遇到一個案例, 需求指名要即時獲取銀行的匯率, 但由於匯率來自 AS-400 的大型主機, 在高頻率查詢下會有顯著的效能問題, 此時研究後得知核心交易也是在 mainframe 內完成, 且最終匯率由交易當下為主(就是 mainframe 內的匯率, 非前端獲得並顯示的匯率), 因此我們就可以在 bff 內設定快取, 來避免 mainframe 效能的問題。</p>
+<p>所以其實不用硬去優化 tcp gateway 那裏的程式, 反而靠著理解業務邏輯與溝通, 能開闢出一條新的路來。</p>
+<p>最後感謝你閱讀到這裡, 在此開放一周的時間給我 <del>友善的</del> 讀者們測試, 若有問題與想法也歡迎和我分享與回報, 回報流程可以看下面的介紹, 然後麻煩不要尻爆我的 server。</p>
+<blockquote>
+<p>另外說明一下, 我的網路是一個 4G 499 吃到飽 sim 卡, 只有可憐的 24mbps, 多數的瓶頸應該都在網路速度上</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://voxelmd.williamrightone.com/">VoxelMD Beta 版本連結</a></p>
+<p>測試帳號密碼:</p>
+<blockquote>
+<p><a href="mailto:&#x64;&#x65;&#118;&#64;&#x76;&#111;&#x78;&#x65;&#x6c;&#x6d;&#x64;&#46;&#x63;&#111;&#109;">dev@voxelmd.com</a> : Test1234!</p>
+</blockquote>
+<p>預計每天 flyway clean &amp; migrate 兩次, 檔案有過 ClamAV 等掃描, 出問題系統會鎖測試帳號, 所以請大家不要上傳敏感資訊, 後果自行承擔。</p>
+<p><strong>回報流程:</strong></p>
+<p>登入後點選左上方 logo 下面的 User 資訊欄位, 會進入 <a target="_blank" rel="noopener" href="https://voxelmd.williamrightone.com/profile">Profile &amp; Settings</a> 畫面, 此時捲到最下方, 即可回報問題.</p>
+<p><img src="/../img/voxelmd-4/report.png" alt="如果你寫一個腳本拿 token 一直打我的 DB, 我會把你寫成文章"></p>
+</div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/develop/">develop</a><a class="link-muted mr-2" rel="tag" href="/tags/VoxelMD/">VoxelMD</a><a class="link-muted mr-2" rel="tag" href="/tags/AI/">AI</a><a class="link-muted mr-2" rel="tag" href="/tags/Vibe-Code/">Vibe Code</a><a class="link-muted mr-2" rel="tag" href="/tags/devops/">devops</a><a class="link-muted mr-2" rel="tag" href="/tags/optimization/">optimization</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2026/05/04/2026-s1-review/"><span class="level-item">2026 第一季 Review</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/PIX.png" alt="William Wu"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">William Wu</p><p class="is-size-6 is-block">Hope you find solution here</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Taiwan</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives/"><p class="title">31</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories/"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags/"><p class="title">40</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/Williamrightone" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/Williamrightone"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="LinkedIn" href="https://www.linkedin.com/in/william-wu-786857142"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="CakeResume" href="https://www.cake.me/willy4543"><i class="fas fa-user-tie"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><!--!--><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/Design-Pattern/"><span class="level-start"><span class="level-item">Design Pattern</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/categories/Development/"><span class="level-start"><span class="level-item">Development</span></span><span class="level-end"><span class="level-item tag">18</span></span></a></li><li><a class="level is-mobile" href="/categories/Life/"><span class="level-start"><span class="level-item">Life</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile" href="/categories/Troll/"><span class="level-start"><span class="level-item">Troll</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-04T22:18:17.000Z">2026-05-05</time></p><p class="title"><a href="/2026/05/05/voxelmd-4-infra-optimal/">VoxelMD | 4. 上線 TTS 優化案例與心得</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-03T18:02:16.000Z">2026-05-04</time></p><p class="title"><a href="/2026/05/04/2026-s1-review/">2026 第一季 Review</a></p><p class="categories"><a href="/categories/Life/">Life</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-28T23:07:53.000Z">2026-04-29</time></p><p class="title"><a href="/2026/04/29/voxelmd-3-threadlocal/">VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-27T20:01:45.000Z">2026-04-28</time></p><p class="title"><a href="/2026/04/28/voxelmd-2-vibe-code/">VoxelMD | 2. 關於 Vibe Code 開發心得與架構規範</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-26T03:41:48.000Z">2026-04-26</time></p><p class="title"><a href="/2026/04/26/voxelmd-1-intro/">VoxelMD | 1. Markdown 文件管理與智慧語音專案</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2026/05/"><span class="level-start"><span class="level-item">May 2026</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/04/"><span class="level-start"><span class="level-item">April 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/03/"><span class="level-start"><span class="level-item">March 2026</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/02/"><span class="level-start"><span class="level-item">February 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/01/"><span class="level-start"><span class="level-item">January 2026</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/12/"><span class="level-start"><span class="level-item">December 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/11/"><span class="level-start"><span class="level-item">November 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/10/"><span class="level-start"><span class="level-item">October 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/09/"><span class="level-start"><span class="level-item">September 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/08/"><span class="level-start"><span class="level-item">August 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/06/"><span class="level-start"><span class="level-item">June 2025</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/04/"><span class="level-start"><span class="level-item">April 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/03/"><span class="level-start"><span class="level-item">March 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/02/"><span class="level-start"><span class="level-item">February 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/AI/"><span class="tag">AI</span><span class="tag">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Agile/"><span class="tag">Agile</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BFF/"><span class="tag">BFF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Cache/"><span class="tag">Cache</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Casha/"><span class="tag">Casha</span><span class="tag">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Clean-Architecture/"><span class="tag">Clean Architecture</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DB/"><span class="tag">DB</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DDD/"><span class="tag">DDD</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Design-Pattern/"><span class="tag">Design Pattern</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DevOps/"><span class="tag">DevOps</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Exception/"><span class="tag">Exception</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Garage/"><span class="tag">Garage</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Grafana/"><span class="tag">Grafana</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Jmeter/"><span class="tag">Jmeter</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Life/"><span class="tag">Life</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MQ/"><span class="tag">MQ</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MinIO/"><span class="tag">MinIO</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Observation/"><span class="tag">Observation</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Prometheus/"><span class="tag">Prometheus</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/RBAC/"><span class="tag">RBAC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Redis/"><span class="tag">Redis</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rstar/"><span class="tag">Rstar</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/S3-Bucket/"><span class="tag">S3 Bucket</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SDLC/"><span class="tag">SDLC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SOLID/"><span class="tag">SOLID</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Saga/"><span class="tag">Saga</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Cloud/"><span class="tag">Spring Cloud</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-boot/"><span class="tag">Spring boot</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/System-Design/"><span class="tag">System Design</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Thread/"><span class="tag">Thread</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vibe-Code/"><span class="tag">Vibe Code</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/VoxelMD/"><span class="tag">VoxelMD</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/chit-chat/"><span class="tag">chit-chat</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/colorly/"><span class="tag">colorly</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/develop/"><span class="tag">develop</span><span class="tag">26</span></a></div><div class="control"><a class="tags has-addons" href="/tags/devops/"><span class="tag">devops</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/flow/"><span class="tag">flow</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/github-Actions/"><span class="tag">github Actions</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/optimization/"><span class="tag">optimization</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/troll/"><span class="tag">troll</span><span class="tag">2</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a><p class="is-size-7"><span>&copy; 2026 William Wu</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2025</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "This website uses cookies to improve your experience.",
+          dismiss: "Got it!",
+          allow: "Allow cookies",
+          deny: "Decline",
+          link: "Learn more",
+          policy: "Cookie Policy",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
