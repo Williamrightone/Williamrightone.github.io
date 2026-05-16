@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>VoxelMD | 5. Clean Architecture 微服務單體化流程 - William Right&#039;s Blog</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="William Right&#039;s Blog"><meta name="msapplication-TileImage" content="/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="William Right&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="在 Z2 Mini G5 到手後, 我著手將 VoxelMD 從微服務 refactor 成單體架構, 並更改上架到 G5 內; 得益於遵守六角形架構開法, 在 AI 的幫助下整個重構非常順利, 就順便紀錄一下這個過程..."><meta property="og:type" content="blog"><meta property="og:title" content="VoxelMD | 5. Clean Architecture 微服務單體化流程"><meta property="og:url" content="https://williamrightone.github.io/2026/05/15/voxelmd-5-monolithic/"><meta property="og:site_name" content="William Right&#039;s Blog"><meta property="og:description" content="在 Z2 Mini G5 到手後, 我著手將 VoxelMD 從微服務 refactor 成單體架構, 並更改上架到 G5 內; 得益於遵守六角形架構開法, 在 AI 的幫助下整個重構非常順利, 就順便紀錄一下這個過程..."><meta property="og:locale" content="en_US"><meta property="og:image" content="https://williamrightone.github.io/img/voxelmd-5/cover-2.png"><meta property="article:published_time" content="2026-05-15T10:37:43.000Z"><meta property="article:modified_time" content="2026-05-16T00:16:44.313Z"><meta property="article:author" content="William Wu"><meta property="article:tag" content="develop"><meta property="article:tag" content="AI"><meta property="article:tag" content="Clean Architecture"><meta property="article:tag" content="VoxelMD"><meta property="article:tag" content="Vibe Code"><meta property="article:tag" content="devops"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://williamrightone.github.io/img/voxelmd-5/cover-2.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://williamrightone.github.io/2026/05/15/voxelmd-5-monolithic/"},"headline":"VoxelMD | 5. Clean Architecture 微服務單體化流程","image":["https://williamrightone.github.io/img/voxelmd-5/cover-2.png"],"datePublished":"2026-05-15T10:37:43.000Z","dateModified":"2026-05-16T00:16:44.313Z","author":{"@type":"Person","name":"William Wu"},"publisher":{"@type":"Organization","name":"William Right's Blog","logo":{"@type":"ImageObject","url":"https://williamrightone.github.io/img/PIX.png"}},"description":"在 Z2 Mini G5 到手後, 我著手將 VoxelMD 從微服務 refactor 成單體架構, 並更改上架到 G5 內; 得益於遵守六角形架構開法, 在 AI 的幫助下整個重構非常順利, 就順便紀錄一下這個過程..."}</script><link rel="canonical" href="https://williamrightone.github.io/2026/05/15/voxelmd-5-monolithic/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=G-S29D3Z45V4" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-S29D3Z45V4');</script><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><div class="card-image"><span class="image is-7by3"><img class="fill" src="/img/voxelmd-5/cover-2.png" alt="VoxelMD | 5. Clean Architecture 微服務單體化流程"></span></div><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2026-05-15T10:37:43.000Z" title="2026/5/15 下午6:37:43">2026-05-15</time></span><span class="level-item">Updated&nbsp;<time dateTime="2026-05-16T00:16:44.313Z" title="2026/5/16 上午8:16:44">2026-05-16</time></span><span class="level-item"><a class="link-muted" href="/categories/Development/">Development</a></span><span class="level-item">32 minutes read (About 4794 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">VoxelMD | 5. Clean Architecture 微服務單體化流程</h1><div class="content"><p>VoxelMD 在上週完成了上線, 目前微服務 K8S 版本靠著 Github Private Runner &amp; ArgoCD + Helm Chart, 只要 merge feature 後, pipeline 會自動打包前端成靜態檔案 scp 到 host server, 後端包為 image 推送到 Harbor;</p>
+<p>再手動更新 helm chart image tag, commit 後 ArgoCD 就可以自動 polling 比對差異, 然後將新的 image 部署進去, 十分絲滑.</p>
+<p>不過高敏如我有點受不了 ASUS 主機板的 RGB 光害, 以及老開著伺服器的 PTSD, 再加上前幾天 TTS 跑 10 分鐘的<a href="https://williamrightone.github.io/2026/05/05/voxelmd-4-infra-optimal/">事件</a>後, 讓我在緣分下入手了 Hp 的 Z2 Mini G5, W-1250(6C&#x2F;12T) 32GB ram 搭載 <strong>Nvidia T1000 4GB</strong> 繪圖顯卡(大概是 GTX 1650 Laptop 版).</p>
+<p><img src="/../img/voxelmd-5/g5.jpg" alt="G5 Server 和 Mac Mini Devops, 令人窒息的美"></p>
+<hr>
+<p>評估後我將 VoxelMD 從微服務 refactor 成單體架構, 也因為前期設計時有強調六角形架構, 再轉化的過程中十分順利.</p>
+<p>得益於 T1000 896 個 CUDA Cores(但沒有 Tensor Core), 在不切語音的情境下, 生成 5 分鐘語音大概 15 秒, 3 分鐘語音大概 10 秒, 讓這個 Feature 到了我能接受的程度.</p>
+<p>今天就來分享一下整個過程:</p>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>VoxelMD 的原型是一套標準 Spring Boot 微服務:</p>
+<p>一個 BFF、五個 biz service、Feign 跨服務呼叫、Kafka 跨服務事件、RabbitMQ 處理 async command, 每個 service 各自一個 schema.</p>
+<p>從架構與部署上 Beta 版本都沒有太大的問題(應該吧…), 但這個產品實際還沒有任何規模壓力, 在最一開始其實也只是我為了解決 Obsidian 的 TTS plugin 不適配的問題, 於是維運成本(網路呼叫、分散式追蹤、跨服務交易、部署複雜度、環境組裝) 反而成了我要持續優化這個專案的最大阻礙.</p>
+<p>因此我決定做一個 <strong>單體版 voxelmd-mono</strong> 並行維護。但是有兩條鐵則：</p>
+<blockquote>
+<p>退回單體可以省下分散式系統的負擔，但<strong>不能省下分散式系統概念的設計紀律</strong>, 核心是 Clean Architecture<br>將來真要拆回微服務時，最好是動 port 跟 adapter 層、不是重寫業務邏輯</p>
+</blockquote>
+<p>這篇紀錄的就是貫徹這條鐵則的過程，特別是身份識別這件事, 它接續了 <a href="https://williamrightone.github.io/2026/04/29/voxelmd-3-threadlocal/">VoxelMD #3</a> 在微服務情境下對 <code>ThreadLocal</code> 的決定，但這個答案在單體版有了一個微妙的轉折。</p>
+<h2 id="1-防止架構倒退"><a href="#1-防止架構倒退" class="headerlink" title="1. 防止架構倒退"></a>1. 防止架構倒退</h2><p>退回單體最容易出現的反射動作，就是把過去為了跨網路而設計的東西全部<strong>簡化掉</strong>。例如：</p>
+<table>
+<thead>
+<tr>
+<th>微服務時代的設計</th>
+<th>退回單體時的考量</th>
+<th>最終選擇</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>跨服務只透過 ID 關聯（沒有 JPA association）</td>
+<td>同個 schema，加個 <code>@ManyToOne</code> 可以簡化流程</td>
+<td>維持純 ID 關聯</td>
+</tr>
+<tr>
+<td>Port &#x2F; Adapter 把 storage &#x2F; TTS &#x2F; S3 抽象出來</td>
+<td>直接 inject <code>JpaRepository</code></td>
+<td>Port 是業務邊界，不是網路邊界, 應保留</td>
+</tr>
+<tr>
+<td>跨服務交易靠 Saga &#x2F; 事件編排 + Sweeper</td>
+<td>「直接用 <code>@Transactional</code> 包起來」</td>
+<td><strong>接受</strong>, 這個交換挺合理的, 但原先在 usecase 層處理, 要審視是否下放到 Service 等級</td>
+</tr>
+<tr>
+<td>BFF 在請求邊界提取身份</td>
+<td>ThreadLocal 是同個 process，全層通用</td>
+<td>拒絕。<strong>這就是這篇文章的主題</strong></td>
+</tr>
+</tbody></table>
+<p>這四件事情的取捨原則其實是一樣的, 看便宜的選項會在要回到拆微服務的那天會造成多大的痛苦。前三條我盤點完都很果斷，第四條花我跟 AI 討論了一輪才收斂，所以後面會單獨拉出來細講。</p>
+<p>不過在細講第四條之前，得先把<strong>整體呼叫鏈是怎麼聚合的</strong>講清楚, 因為身份識別其實只是這套通用結構底下的一個特例。</p>
+<h2 id="2-Clean-Architecture：六角形架構下的呼叫鏈"><a href="#2-Clean-Architecture：六角形架構下的呼叫鏈" class="headerlink" title="2. Clean Architecture：六角形架構下的呼叫鏈"></a>2. Clean Architecture：六角形架構下的呼叫鏈</h2><p>先看微服務版一個跨服務操作的完整呼叫鏈：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[BFF process]</span><br><span class="line">Controller → UseCase → Service → Adapter(Feign)</span><br><span class="line"></span><br><span class="line">跨網路邊界 (|)</span><br><span class="line">          (▼)                           </span><br><span class="line">[Biz Service process]</span><br><span class="line">Controller → UseCase → Service → Adapter(Repos) → DB</span><br></pre></td></tr></table></figure>
+
+<p>退回單體後，BFF process 跟 Biz Service process 合一，跨網路那一段消失。</p>
+<p>但這裡有個關鍵：<strong>不是</strong>把兩邊的層直接壓平成一條，而是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[Monolith]</span><br><span class="line">Controller → UseCase(原先 BFF 編排職責) → UseCase(原先 Biz 業務) → Service → Adapter(Repos) → DB</span><br><span class="line">                                      └──────── 唯一接縫 ─────┘</span><br></pre></td></tr></table></figure>
+
+<p>三個重點：</p>
+<ol>
+<li><p><strong><code>Service → Adapter(Repos)</code> 完全不動。</strong> Port 是業務邊界、不是網路邊界，所以最內圈原封不動, 這是聚合成本為零的部分。</p>
+</li>
+<li><p><strong>不壓平成單層 UseCase，刻意保留雙層 UseCase。</strong> 外層 UseCase 接手原本 BFF 的編排職責（聚合、協調多個下游），內層 UseCase 是原 Biz Service 被吸收進來的業務單元。原本 Feign 那一跳，變成外層 UseCase 對內層 UseCase 的 in-process method call。第 6 節的 <code>GetUsageUseCase</code> 聚合 <code>workspaceUsage</code> &#x2F; <code>mediaUsage</code> &#x2F; <code>recordingUsage</code>，就是這個雙層形狀的真實樣子。</p>
+<blockquote>
+<p>為什麼不順手做成一層？因為壓平後就把編排(orchestrator)跟業務單元(Domain usecase)兩個職責縫銲死在一起, 保留雙層接縫才還留在原位</p>
+</blockquote>
+</li>
+<li><p><strong>接縫被刻意留在兩個 UseCase 之間。</strong> 將來真要拆回微服務，要動的只是在這條接縫上重新插回 <code>Adapter(Feign)</code> + remote <code>Controller</code>，下游基本上完全不需要碰。</p>
+</li>
+</ol>
+<p>對照一下各層在單體化跟再拆回去微服務兩個方向的成本：</p>
+<table>
+<thead>
+<tr>
+<th>層</th>
+<th>單體化時的處置</th>
+<th>再拆微服務時的成本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Service → Adapter(Repos) → DB</code></td>
+<td>完全不動</td>
+<td>0</td>
+</tr>
+<tr>
+<td>內層 UseCase（原 Biz 業務單元）</td>
+<td>從被 Feign 叫變成被 in-process 叫</td>
+<td>0（介面不變）</td>
+</tr>
+<tr>
+<td>外層 UseCase（原 BFF 編排）</td>
+<td>inject 對象從 Feign client 換成下游 UseCase</td>
+<td>換回 Feign client</td>
+</tr>
+<tr>
+<td>原 Biz <code>Controller</code> + <code>Adapter(Feign)</code></td>
+<td>聚合消失</td>
+<td>在雙 UseCase 接縫處重新插回</td>
+</tr>
+</tbody></table>
+<p>這就是開頭那條鐵則的結構面落實：<strong>退回單體省掉的是分散式的實作，不是分散式的邊界。</strong> 邊界（Port、UseCase 接縫）原地保留，trade-off 就被壓到只剩接縫上插不插 Feign 等決定。</p>
+<p>實際上, 我之前參與過的台灣交通支付系統, 也是類似這樣的架構.</p>
+<p>而身份識別這條路徑，是上面這套通用結構的一個<strong>特例</strong>, 它的接縫不在 UseCase 之間，而在 Controller 那一行。接下來整篇講的就是這個特例，先從上一篇的結論接起。</p>
+<h2 id="3-上一篇的結論回顧"><a href="#3-上一篇的結論回顧" class="headerlink" title="3. 上一篇的結論回顧"></a>3. 上一篇的結論回顧</h2><p><a href="https://williamrightone.github.io/2026/04/29/voxelmd-3-threadlocal/">VoxelMD #3</a> 的核心結論是：</p>
+<blockquote>
+<p>ThreadLocal 屬於 framework 級別的橫切關注，不應該成為業務邊界的傳遞機制<br>跨網路邊界請用網路協定（HTTP header），跨函式呼叫請用方法參數</p>
+</blockquote>
+<p>那篇的具體決定是：</p>
+<ul>
+<li><strong>BFF 入口</strong>：<code>JwtAuthFilter</code> 解 JWT，寫進 <code>UserContextHolder</code>。ThreadLocal 在這裡合理，因為它是同進程同請求的暫存。</li>
+<li><strong>BFF → biz service</strong>：跨網路邊界，改走 <code>@RequestHeader(&quot;X-User-Id&quot;)</code>，徹底拔掉 <code>UserContextFeignInterceptor</code> 這種從 ThreadLocal 偷塞 header 的隱式行為。</li>
+<li><strong>Biz service 內部</strong>：拔掉所有 <code>InternalAuthFilter</code> 跟下游 <code>UserContextHolder</code>。Controller &#x2F; UseCase &#x2F; Service 全部把 <code>userId</code> &#x2F; <code>Plan</code> 做成顯式參數。</li>
+</ul>
+<p>那次重構動了 30+ 個 method signature, 換來的是身份識別這條路徑上，<strong>整個系統只有一個地方接觸 ThreadLocal — 就是 BFF 的 filter</strong>.</p>
+<h2 id="4-而在單體裡-BFF-是誰？"><a href="#4-而在單體裡-BFF-是誰？" class="headerlink" title="4. 而在單體裡, BFF 是誰？"></a>4. 而在單體裡, BFF 是誰？</h2><p>或者該說, 誰要擔任 orchestrator? (BFF 最原始的概念其實是服務於 Frontend, 例子是 Web, Mobile 各一個)</p>
+<p>通用呼叫鏈的聚合第 2 節已經談過了，這裡只把<strong>身份相關的層</strong>標出來。微服務版的拓撲：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Client → BFF [JwtAuthFilter → UserContextHolder]</span><br><span class="line">       → Biz Service [@RequestHeader → method param]</span><br><span class="line">       → UseCase / Service [explicit params]</span><br></pre></td></tr></table></figure>
+
+<p>單體版沒有 BFF process，但 JWT 還是要在某個地方解開、放進 holder：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Client → JwtAuthFilter [解 JWT → UserContextHolder]</span><br><span class="line">       → Controller [???]</span><br><span class="line">       → UseCase / Service [???]</span><br></pre></td></tr></table></figure>
+
+<p>問題剩兩個：</p>
+<ol>
+<li><strong>誰</strong> 該負責把 holder 的值取出來，往下游 propagate？</li>
+<li><strong>誰</strong> 之下，全部禁止接觸 holder？</li>
+</ol>
+<p>第二個問題比較好答, 跟微服務版一樣：<strong>Service &#x2F; Domain &#x2F; Adapter 全部禁止觸碰 holder</strong>。它們只接顯式參數。只要這條規則只要守住，未來拆服務時這幾層幾乎不會被影響。</p>
+<p>而第一個問題的答案, 就是 UseCase 了…. 嗎?</p>
+<h2 id="5-直覺下-用-UseCase-讀-holder"><a href="#5-直覺下-用-UseCase-讀-holder" class="headerlink" title="5. 直覺下, 用 UseCase 讀 holder"></a>5. 直覺下, 用 UseCase 讀 holder</h2><p>我的第一直覺是 <strong>UseCase 是單體版的 BFF</strong>。</p>
+<p>如第 2 節所述，BFF 的編排職責在單體版被<strong>外層 UseCase</strong> 接手。既然 BFF 在微服務時代還兼著處理 request-bound concerns(auth、rate limit、identity 提取)，那很自然會推論：UseCase 作為 BFF 的繼承者，也應該繼承 BFF 在請求邊界讀 ThreadLocal 這個職責, 而不是讓 Controller 多承擔這件事, Controller 應該只做純 HTTP 翻譯。</p>
+<p>這個方案我們暫且叫它 <strong>Option B</strong>。寫起來會像這樣：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Controller — 完全不知道 userId 存在</span></span><br><span class="line"><span class="meta">@DeleteMapping(&quot;/&#123;id&#125;&quot;)</span></span><br><span class="line"><span class="keyword">public</span> ResponseEntity&lt;Void&gt; <span class="title function_">deleteWorkspace</span><span class="params">(<span class="meta">@PathVariable</span> Long id)</span> &#123;</span><br><span class="line">    deleteWorkspaceUseCase.execute(id);</span><br><span class="line">    <span class="keyword">return</span> ResponseEntity.noContent().build();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// UseCase — 在自己的入口讀一次 holder</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">(Long workspaceId)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> UserContextHolder.currentUserId();</span><br><span class="line">    workspaceService.delete(userId, workspaceId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>看起來很乾淨。但跑了一輪 grep 後我發現它在這個 codebase 上會撞牆。</p>
+<h2 id="6-跨模組-async-的-UseCase-撞牆"><a href="#6-跨模組-async-的-UseCase-撞牆" class="headerlink" title="6. 跨模組 + async 的 UseCase 撞牆"></a>6. 跨模組 + async 的 UseCase 撞牆</h2><p>罪魁禍首是這個 usecase (又是你, 你最爛, 人家西點軍校你西點麵包)：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// uaa/application/usecase/impl/GetUsageUseCaseImpl.java</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> UsageRs <span class="title function_">execute</span><span class="params">(UserContext caller)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> caller.getUserId();</span><br><span class="line">    <span class="type">Plan</span> <span class="variable">plan</span>   <span class="operator">=</span> caller.getPlan();</span><br><span class="line"></span><br><span class="line">    CompletableFuture&lt;WorkspaceUsageRs&gt; fws = CompletableFuture.supplyAsync(</span><br><span class="line">            () -&gt; workspaceUsage.execute(userId), usageExecutor);</span><br><span class="line">    CompletableFuture&lt;MediaUsageRs&gt; fmd = CompletableFuture.supplyAsync(</span><br><span class="line">            () -&gt; mediaUsage.execute(userId), usageExecutor);</span><br><span class="line">    CompletableFuture&lt;RecordingUsageRs&gt; frec = CompletableFuture.supplyAsync(</span><br><span class="line">            () -&gt; recordingUsage.execute(userId, plan), usageExecutor);</span><br><span class="line">    <span class="comment">// ...</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>這正好是第 2 節講的「雙層 UseCase」的真實樣子 — <code>GetUsageUseCase</code> 是外層編排，<code>workspaceUsage</code> &#x2F; <code>mediaUsage</code> &#x2F; <code>recordingUsage</code> 是內層業務單元。而且讀過上一篇就知道這個 pattern 就是讓 ThreadLocal 失效的那個 <code>supplyAsync</code> 跨執行緒場景。<code>USAGE_EXECUTOR</code> 上的 worker thread 跟原本的 request thread 不是同一條，導致 holder 是空的。</p>
+<p>那篇文章最後我決定 <strong>不用 <code>TaskDecorator</code> 自動傳 ThreadLocal</strong>.</p>
+<p>這個決定還生效中 — 所以在文件 <a href="../voxelmd-mono/doc/rules/auth-context.md">auth-context.md</a> 還是寫著 <strong>identity does not propagate, intentionally</strong>。</p>
+<p>問題來了：<strong><code>workspaceUsage.execute(userId)</code> 這個被 async 呼叫的 UseCase，它能不能讀 holder？</strong> 不能。它在 worker thread 上，holder 是空的。</p>
+<p>但同時這個 <code>GetWorkspaceUsageUseCase</code> <strong>也被 <code>WorkspaceUsageController</code> 直接呼叫</strong>（同步、在 request thread 上、holder 有值）。它有兩個 caller，分別處在 holder 有值跟 holder 無值兩種環境。</p>
+<p>如果走 Option B（讓 UseCase 讀 holder），這個 UseCase 就<strong>沒地方擺</strong>：</p>
+<ul>
+<li>規則化成: top-level UseCase 讀 holder、inner UseCase 接參數? 這個 UseCase 兩種角色都是</li>
+<li>規則化成: 全部 UseCase 都讀 holder? async caller 直接壞</li>
+</ul>
+<p>不對稱規則站不住。我跟 AI 討論了一輪，剩下兩條路：</p>
+<p><strong>(a) 我就接受不對稱</strong>：跨模組 &#x2F; async-callable 的 UseCase 接參數，純 controller-only 的 UseCase 讀 holder。但同一個 UseCase 兩種角色都有的時候，這個分類就崩了。</p>
+<p><strong>(b) 換規則</strong>：所有 UseCase 統一接顯式 <code>Long userId</code> 參數，Controller 變成那個唯一讀 holder 的層。</p>
+<p>最後選了 (b)。叫它 <strong>Option A</strong>。</p>
+<h2 id="7-Option-A：Controller-是身份的唯一入口"><a href="#7-Option-A：Controller-是身份的唯一入口" class="headerlink" title="7. Option A：Controller 是身份的唯一入口"></a>7. Option A：Controller 是身份的唯一入口</h2><p>具體形狀：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Controller — 把 holder 翻譯成顯式參數</span></span><br><span class="line"><span class="meta">@DeleteMapping(&quot;/&#123;id&#125;&quot;)</span></span><br><span class="line"><span class="keyword">public</span> ResponseEntity&lt;Void&gt; <span class="title function_">deleteWorkspace</span><span class="params">(<span class="meta">@PathVariable</span> Long id)</span> &#123;</span><br><span class="line">    <span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> UserContextHolder.currentUserId();</span><br><span class="line">    deleteWorkspaceUseCase.execute(userId, id);</span><br><span class="line">    <span class="keyword">return</span> ResponseEntity.noContent().build();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// UseCase — 永遠接顯式參數</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title function_">execute</span><span class="params">(Long userId, Long workspaceId)</span> &#123;</span><br><span class="line">    workspaceService.delete(userId, workspaceId);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>整個系統的 <code>UserContextHolder.get()</code> &#x2F; <code>.currentUserId()</code> 呼叫，現在只出現在兩個地方：</p>
+<ul>
+<li><code>JwtAuthFilter</code>（寫入 holder） — 1 處</li>
+<li>所有 controller method 的開頭（讀取 holder） — 11 個檔案</li>
+</ul>
+<p>UseCase &#x2F; Service &#x2F; Domain &#x2F; Adapter — <strong>零</strong> holder 存取。這條規則用 <code>grep</code> 就能驗證，等於用 IDE 工具 enforce 邊界紀律。</p>
+<h2 id="8-又把-holder-塞回-Controller"><a href="#8-又把-holder-塞回-Controller" class="headerlink" title="8. 又把 holder 塞回 Controller"></a>8. 又把 holder 塞回 Controller</h2><blockquote>
+<p>我前面才說把 UserContext 放在 controller 內很髒，應該要在 usecase 內呼叫 UserContextHolder，結果現在反而保留這樣的做法？</p>
+</blockquote>
+<p>這個問題很尖銳。我承認自己前面講對於 dirty 的定義太敏感.</p>
+<table>
+<thead>
+<tr>
+<th>行為</th>
+<th>是否 dirty</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>@CallerUserId Long userId</code> 由 Spring resolver 從 holder 偷塞給 controller method 參數</td>
+<td><strong>是</strong>。Method signature 看不出 userId 來源，是 Spring magic 製造的隱式耦合</td>
+</tr>
+<tr>
+<td>Service 層 &#x2F; Domain 層直接 <code>UserContextHolder.get()</code></td>
+<td><strong>是</strong>。純邏輯層依賴全域狀態，testable 性差，未來拆服務直接崩</td>
+</tr>
+<tr>
+<td>Controller method body 裡一行 <code>Long userId = UserContextHolder.currentUserId();</code></td>
+<td><strong>不是</strong>。這是 hexagonal 架構裡 primary adapter 的標準工作, 把外部請求概念翻譯成內部 domain 輸入</td>
+</tr>
+</tbody></table>
+<p>關鍵差別還是在<strong>前兩種把骯髒藏起來假裝乾淨；第三種把骯髒精確收在唯一一條邊界線上。</strong> 後者才是 hexagonal &#x2F; clean architecture 的核心精神。</p>
+<p>回頭看上一篇文章，那篇砍掉的也不是 BFF 讀 ThreadLocal 這件事 — BFF 那一份 <code>UserContextHolder.get()</code> 一直保留著。砍掉的是 <strong>跨服務 Feign interceptor 偷塞 header</strong> 跟 <strong>下游 service 重新放一份 holder</strong>, 所以按照同樣的精神：holder 只能存活在請求邊界，不能擴散到請求邊界以外的地方。</p>
+<p>另外還有一個更重要的觀點:</p>
+<blockquote>
+<p>未來若 controller 變成 biz 服務之內，本身他的 usecase 對 UserContext 來源也會是 controller，所以當前先暫時讓服務從 controller 內丟進去，也是合理的</p>
+</blockquote>
+<p>微服務版裡 biz service 的 controller 長這樣：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> ResponseEntity&lt;...&gt; deleteWorkspace(</span><br><span class="line">        <span class="meta">@RequestHeader(&quot;X-User-Id&quot;)</span> Long userId,</span><br><span class="line">        <span class="meta">@PathVariable</span> Long id) &#123;</span><br><span class="line">    deleteWorkspaceUseCase.execute(userId, id);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>它做的事情就是從 request 取出 caller identity → 傳給 use case。跟單體版的 controller 結構<strong>完全一樣</strong>，差別只在外部請求概念是 header 還是 holder（而 holder 也是 filter 從 JWT 翻來的）。</p>
+<p>換句話說：<strong>單體版的 Controller &#x3D; 微服務版的 Biz Service Controller</strong>。它在 hexagonal 架構裡占的位置一直都是 primary adapter，不管底下是同進程還是跨網路。</p>
+<h2 id="9-業界作法對照：Spring-Boot-自己也是這樣寫的"><a href="#9-業界作法對照：Spring-Boot-自己也是這樣寫的" class="headerlink" title="9. 業界作法對照：Spring Boot 自己也是這樣寫的"></a>9. 業界作法對照：Spring Boot 自己也是這樣寫的</h2><p>決定 Option A 之後我做了一輪 cross-check，看這個 pattern 跟業界主流的 alignment 程度。結果其實非常一致：</p>
+<h3 id="Spring-Security-AuthenticationPrincipal"><a href="#Spring-Security-AuthenticationPrincipal" class="headerlink" title="Spring Security @AuthenticationPrincipal"></a>Spring Security <code>@AuthenticationPrincipal</code></h3><p>Spring 官方教學裡 controller 永遠長這樣：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;/me&quot;)</span></span><br><span class="line"><span class="keyword">public</span> UserDto <span class="title function_">me</span><span class="params">(<span class="meta">@AuthenticationPrincipal</span> CustomUserDetails user)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> profileService.findByUserId(user.getId());</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Controller 接 principal 物件，往下傳 <code>user.getId()</code> 給 service。Service 自己<strong>不碰</strong> <code>SecurityContextHolder</code>。Spring 自家的 sample &#x2F; Spring Boot starter &#x2F; Spring Cloud 教材幾乎全是這個 pattern。</p>
+<p>註：<code>SecurityContextHolder</code> 跟我自己寫的 <code>UserContextHolder</code> 結構幾乎一樣 — 都是 <code>ThreadLocal</code>，都靠 filter 寫入、<code>finally</code> 清掉。Spring 自己對 holder 的態度也是 inbound adapter 才碰，往下走顯式參數。</p>
+<h3 id="Hexagonal-Architecture（Alistair-Cockburn）"><a href="#Hexagonal-Architecture（Alistair-Cockburn）" class="headerlink" title="Hexagonal Architecture（Alistair Cockburn）"></a>Hexagonal Architecture（Alistair Cockburn）</h3><p>原文定義：</p>
+<blockquote>
+<p>Primary adapters drive the application. They translate external request formats — HTTP, CLI, gRPC, message queues — into the application’s port-defined inputs.</p>
+</blockquote>
+<p>翻譯外部請求格式成應用程式的 port 輸入, 字面上就是 controller 該做的事。HTTP &#x2F; Header &#x2F; JWT &#x2F; ThreadLocal <strong>本來就屬於外部</strong>，不該滲到 application 層以下。</p>
+<h3 id="Clean-Architecture（Uncle-Bob）"><a href="#Clean-Architecture（Uncle-Bob）" class="headerlink" title="Clean Architecture（Uncle Bob）"></a>Clean Architecture（Uncle Bob）</h3><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[ Frameworks &amp; Drivers ]    ← Controller 在這層</span><br><span class="line">[ Interface Adapters  ]</span><br><span class="line">[ Application Use Cases ]   ← 純 method 參數</span><br><span class="line">[ Enterprise Business ]     ← 純 method 參數</span><br></pre></td></tr></table></figure>
+
+<p>外圍的 framework&#x2F;driver 層才能接觸 HTTP &#x2F; SecurityContext &#x2F; ThreadLocal。內層（UseCase &#x2F; Domain）的依賴方向永遠朝外，介面只接受純資料 — <code>Long userId</code>、不是 <code>HttpServletRequest</code>。</p>
+<h3 id="BFF-Pattern"><a href="#BFF-Pattern" class="headerlink" title="BFF Pattern"></a>BFF Pattern</h3><p>Sam Newman 的 <em>Building Microservices</em> 跟 ThoughtWorks 的 BFF 文獻裡：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Client → BFF（驗 JWT、提取 user identity、組合 request）</span><br><span class="line">       → 內部 Service Controller（從 X-User-Id header 接身份）</span><br><span class="line">       → 內部 Service Logic（顯式參數）</span><br></pre></td></tr></table></figure>
+
+<p>BFF 是身份的入口，下游 service 的 controller 是身份的再入口, 這也正是我前面講的 Biz Service Controller &#x3D; 單體 Controller。</p>
+<h3 id="Domain-Driven-Design（Vaughn-Vernon）"><a href="#Domain-Driven-Design（Vaughn-Vernon）" class="headerlink" title="Domain-Driven Design（Vaughn Vernon）"></a>Domain-Driven Design（Vaughn Vernon）</h3><p><em>Implementing Domain-Driven Design</em> 第 14 章：</p>
+<blockquote>
+<p>The Application Service is the boundary between the outside world and the domain model.<br>It receives identity and authorization information as method parameters from the inbound adapter.</p>
+</blockquote>
+<p>DDD 對 application service 的定義就是接 inbound adapter 給的顯式 identity。</p>
+<h3 id="共通結構"><a href="#共通結構" class="headerlink" title="共通結構"></a>共通結構</h3><p>把這些教科書放一起看會發現他們在描述同一個東西，只是用詞不同：</p>
+<table>
+<thead>
+<tr>
+<th>來源</th>
+<th>「身份提取的唯一邊界」</th>
+<th>「下游純參數」</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Spring Security</td>
+<td><code>@AuthenticationPrincipal</code></td>
+<td><code>service.do(user.getId())</code></td>
+</tr>
+<tr>
+<td>Hexagonal</td>
+<td>Primary adapter</td>
+<td>Application port</td>
+</tr>
+<tr>
+<td>Clean Architecture</td>
+<td>Frameworks &amp; Drivers 層</td>
+<td>Use Cases 層</td>
+</tr>
+<tr>
+<td>BFF Pattern</td>
+<td>BFF + biz service controller</td>
+<td>Biz service logic</td>
+</tr>
+<tr>
+<td>DDD</td>
+<td>Inbound adapter</td>
+<td>Application Service</td>
+</tr>
+<tr>
+<td><strong>VoxelMD Mono</strong></td>
+<td><strong>Controller from <code>UserContextHolder</code></strong></td>
+<td><strong>UseCase &#x2F; Service</strong></td>
+</tr>
+</tbody></table>
+<p>每個做法都有同樣的核心結構：<br><strong>身份在邊界提取一次，往下全部顯式參數。</strong> 這就是為什麼 Option A 看起來簡單，但其實是業界最深的共識之一。</p>
+<h2 id="10-拆回微服務的零成本路徑"><a href="#10-拆回微服務的零成本路徑" class="headerlink" title="10. 拆回微服務的零成本路徑"></a>10. 拆回微服務的零成本路徑</h2><p>第 2 節談過通用結構的接縫在雙 UseCase 之間。身份這條路徑是它的特例 — 接縫換到了 Controller 那一行。兩者是同一個論證的兩個投影：<strong>邊界原地保留，拆回去就只是替換邊界上「外部來源」的字面表示。</strong></p>
+<p>既然 Controller 在 hexagonal 架構裡的位置不會變，未來真要拆回微服務時，身份這條路徑的整個遷移成本就只剩這一行：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 單體版（現在）</span></span><br><span class="line"><span class="type">Long</span> <span class="variable">userId</span> <span class="operator">=</span> UserContextHolder.currentUserId();</span><br><span class="line"></span><br><span class="line"><span class="comment">// 微服務版（拆回去之後）</span></span><br><span class="line"><span class="meta">@RequestHeader(&quot;X-User-Id&quot;)</span> Long userId</span><br></pre></td></tr></table></figure>
+
+<p>下游所有層: UseCase、Service、Domain、Adapter 就能<strong>完全不變</strong>，因為它們本來就只接顯式參數。如果當初讓 service 層偷讀 holder，那拆服務時這些層每一個都要重寫。</p>
+<p>我大概想了一下各 Option 的 trade-off.</p>
+<table>
+<thead>
+<tr>
+<th>設計選擇</th>
+<th>拆服務時的成本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Service 層讀 <code>UserContextHolder</code></td>
+<td>每個 service method 重寫，可能上百個檔案</td>
+</tr>
+<tr>
+<td>Controller 接 <code>@CallerUserId Long userId</code>（annotation magic）</td>
+<td>換成 <code>@RequestHeader(&quot;X-User-Id&quot;)</code>，但 magic resolver 要刪</td>
+</tr>
+<tr>
+<td><strong>Controller 內顯式 <code>UserContextHolder.currentUserId()</code></strong></td>
+<td><strong>改一行字面字串成 <code>@RequestHeader</code></strong></td>
+</tr>
+</tbody></table>
+<p>第三條贏的理由是：身份提取的責任<strong>已經精準收在 Controller method body 的開頭</strong>，移植時只要替換「外部來源」的字面表示，邊界位置完全沒變。</p>
+<h2 id="結語"><a href="#結語" class="headerlink" title="結語"></a>結語</h2><p>這次重構動了 11 個 controller、4 個 UseCase 介面、4 個 UseCase 實作、1 個 doc rule，加上刪 4 個基礎設施檔（<code>@CallerUserId</code> annotation + resolver + WebMvcConfig）。比上一篇的 30+ 還少，但花的討論跟思考的時間更多, 因為每個決定都要過一遍拆服務時, 現在下的決策會導致什麼後果.</p>
+<p>等後續 VoxelMD 的 Feature 開發到一定規模, 我再做一次把他從單體拆分到微服務的流程好了, 希望不會啪啪打自己的臉 XD.</p>
+<p>謝謝你看到這裡, 後面的開發 VoxelMD 基本上都會走單體架構了, 近期 VoxelMD 相關的文章(若還有)都會以 Feature 為主, 下一篇文章也正在撰寫中, 是我把 Excalidraw Canvas Feature 引入的心得.</p>
+<p><img src="/../img/voxelmd-5/awake.png" alt="朋友測試說圖片渲染失敗, 我修整後看到圖片, 笑爛在電腦前"></p>
+<p>看來是想找我在天際省相會…</p>
+</div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/develop/">develop</a><a class="link-muted mr-2" rel="tag" href="/tags/AI/">AI</a><a class="link-muted mr-2" rel="tag" href="/tags/Clean-Architecture/">Clean Architecture</a><a class="link-muted mr-2" rel="tag" href="/tags/VoxelMD/">VoxelMD</a><a class="link-muted mr-2" rel="tag" href="/tags/Vibe-Code/">Vibe Code</a><a class="link-muted mr-2" rel="tag" href="/tags/devops/">devops</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2026/05/09/my-servers/"><span class="level-item">那些年, 我組過的伺服器</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/PIX.png" alt="William Wu"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">William Wu</p><p class="is-size-6 is-block">Hope you find solution here</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Taiwan</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives/"><p class="title">33</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories/"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags/"><p class="title">41</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/Williamrightone" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/Williamrightone"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="LinkedIn" href="https://www.linkedin.com/in/william-wu-786857142"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="CakeResume" href="https://www.cake.me/willy4543"><i class="fas fa-user-tie"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><!--!--><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/Design-Pattern/"><span class="level-start"><span class="level-item">Design Pattern</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/categories/Development/"><span class="level-start"><span class="level-item">Development</span></span><span class="level-end"><span class="level-item tag">19</span></span></a></li><li><a class="level is-mobile" href="/categories/Life/"><span class="level-start"><span class="level-item">Life</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile" href="/categories/Troll/"><span class="level-start"><span class="level-item">Troll</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-15T10:37:43.000Z">2026-05-15</time></p><p class="title"><a href="/2026/05/15/voxelmd-5-monolithic/">VoxelMD | 5. Clean Architecture 微服務單體化流程</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-08T23:20:18.000Z">2026-05-09</time></p><p class="title"><a href="/2026/05/09/my-servers/">那些年, 我組過的伺服器</a></p><p class="categories"><a href="/categories/Troll/">Troll</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-04T22:18:17.000Z">2026-05-05</time></p><p class="title"><a href="/2026/05/05/voxelmd-4-infra-optimal/">VoxelMD | 4. 上線 TTS 優化案例與心得</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-03T18:02:16.000Z">2026-05-04</time></p><p class="title"><a href="/2026/05/04/2026-s1-review/">2026 第一季 Review</a></p><p class="categories"><a href="/categories/Life/">Life</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-04-28T23:07:53.000Z">2026-04-29</time></p><p class="title"><a href="/2026/04/29/voxelmd-3-threadlocal/">VoxelMD | 3. 從 NPE 到架構重構, ThreadLocal 跨服務設計</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2026/05/"><span class="level-start"><span class="level-item">May 2026</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/04/"><span class="level-start"><span class="level-item">April 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/03/"><span class="level-start"><span class="level-item">March 2026</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/02/"><span class="level-start"><span class="level-item">February 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/01/"><span class="level-start"><span class="level-item">January 2026</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/12/"><span class="level-start"><span class="level-item">December 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/11/"><span class="level-start"><span class="level-item">November 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/10/"><span class="level-start"><span class="level-item">October 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/09/"><span class="level-start"><span class="level-item">September 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/08/"><span class="level-start"><span class="level-item">August 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/06/"><span class="level-start"><span class="level-item">June 2025</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/04/"><span class="level-start"><span class="level-item">April 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/03/"><span class="level-start"><span class="level-item">March 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/02/"><span class="level-start"><span class="level-item">February 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/AI/"><span class="tag">AI</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Agile/"><span class="tag">Agile</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BFF/"><span class="tag">BFF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Cache/"><span class="tag">Cache</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Casha/"><span class="tag">Casha</span><span class="tag">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Clean-Architecture/"><span class="tag">Clean Architecture</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DB/"><span class="tag">DB</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DDD/"><span class="tag">DDD</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Design-Pattern/"><span class="tag">Design Pattern</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DevOps/"><span class="tag">DevOps</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Exception/"><span class="tag">Exception</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Garage/"><span class="tag">Garage</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Grafana/"><span class="tag">Grafana</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Jmeter/"><span class="tag">Jmeter</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Life/"><span class="tag">Life</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MQ/"><span class="tag">MQ</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MinIO/"><span class="tag">MinIO</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Observation/"><span class="tag">Observation</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Prometheus/"><span class="tag">Prometheus</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/RBAC/"><span class="tag">RBAC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Redis/"><span class="tag">Redis</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rstar/"><span class="tag">Rstar</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/S3-Bucket/"><span class="tag">S3 Bucket</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SDLC/"><span class="tag">SDLC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SOLID/"><span class="tag">SOLID</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Saga/"><span class="tag">Saga</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Cloud/"><span class="tag">Spring Cloud</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-boot/"><span class="tag">Spring boot</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/System-Design/"><span class="tag">System Design</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Thread/"><span class="tag">Thread</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vibe-Code/"><span class="tag">Vibe Code</span><span class="tag">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/VoxelMD/"><span class="tag">VoxelMD</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/chit-chat/"><span class="tag">chit-chat</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/colorly/"><span class="tag">colorly</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/develop/"><span class="tag">develop</span><span class="tag">28</span></a></div><div class="control"><a class="tags has-addons" href="/tags/devops/"><span class="tag">devops</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/flow/"><span class="tag">flow</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/github-Actions/"><span class="tag">github Actions</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/infrasturcture/"><span class="tag">infrasturcture</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/optimization/"><span class="tag">optimization</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/troll/"><span class="tag">troll</span><span class="tag">3</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a><p class="is-size-7"><span>&copy; 2026 William Wu</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2025</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "This website uses cookies to improve your experience.",
+          dismiss: "Got it!",
+          allow: "Allow cookies",
+          deny: "Decline",
+          link: "Learn more",
+          policy: "Cookie Policy",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
