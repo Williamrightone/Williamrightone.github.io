@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"><meta><title>VoxelMD | 6. Markdown/Canvas Autosave 的 Redis 寫入緩衝設計 - William Right&#039;s Blog</title><link rel="manifest" href="/manifest.json"><meta name="application-name" content="William Right&#039;s Blog"><meta name="msapplication-TileImage" content="/img/favicon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="William Right&#039;s Blog"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="VoxelMD 的文章編輯器與 Canvas共用同一套 debounce + Redis buffer + 定期 DB flush 的 autosave 機制, 今天就從前端計時器到後端 Redis adapter，完整呈現這套設計的每一個決定與取捨..."><meta property="og:type" content="blog"><meta property="og:title" content="VoxelMD | 6. Markdown/Canvas Autosave 的 Redis 寫入緩衝設計"><meta property="og:url" content="https://williamrightone.github.io/2026/05/19/voxelmd-6-cache/"><meta property="og:site_name" content="William Right&#039;s Blog"><meta property="og:description" content="VoxelMD 的文章編輯器與 Canvas共用同一套 debounce + Redis buffer + 定期 DB flush 的 autosave 機制, 今天就從前端計時器到後端 Redis adapter，完整呈現這套設計的每一個決定與取捨..."><meta property="og:locale" content="en_US"><meta property="og:image" content="https://williamrightone.github.io/img/voxel_cache.png"><meta property="article:published_time" content="2026-05-19T00:48:18.000Z"><meta property="article:modified_time" content="2026-05-20T00:59:58.458Z"><meta property="article:author" content="William Wu"><meta property="article:tag" content="develop"><meta property="article:tag" content="AI"><meta property="article:tag" content="Redis"><meta property="article:tag" content="Cache"><meta property="article:tag" content="VoxelMD"><meta property="article:tag" content="Vibe Code"><meta property="article:tag" content="devops"><meta property="article:tag" content="Canvas"><meta property="twitter:card" content="summary"><meta property="twitter:image:src" content="https://williamrightone.github.io/img/voxel_cache.png"><script type="application/ld+json">{"@context":"https://schema.org","@type":"BlogPosting","mainEntityOfPage":{"@type":"WebPage","@id":"https://williamrightone.github.io/2026/05/19/voxelmd-6-cache/"},"headline":"VoxelMD | 6. Markdown/Canvas Autosave 的 Redis 寫入緩衝設計","image":["https://williamrightone.github.io/img/voxel_cache.png"],"datePublished":"2026-05-19T00:48:18.000Z","dateModified":"2026-05-20T00:59:58.458Z","author":{"@type":"Person","name":"William Wu"},"publisher":{"@type":"Organization","name":"William Right's Blog","logo":{"@type":"ImageObject","url":"https://williamrightone.github.io/img/PIX.png"}},"description":"VoxelMD 的文章編輯器與 Canvas共用同一套 debounce + Redis buffer + 定期 DB flush 的 autosave 機制, 今天就從前端計時器到後端 Redis adapter，完整呈現這套設計的每一個決定與取捨..."}</script><link rel="canonical" href="https://williamrightone.github.io/2026/05/19/voxelmd-6-cache/"><link rel="icon" href="/img/favicon.png"><link rel="stylesheet" href="https://use.fontawesome.com/releases/v6.0.0/css/all.css"><link data-pjax rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/atom-one-light.css"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;600&amp;family=Source+Code+Pro"><link data-pjax rel="stylesheet" href="/css/default.css"><style>body>.footer,body>.navbar,body>.section{opacity:0}</style><!--!--><!--!--><!--!--><!--!--><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/css/lightgallery.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/css/justifiedGallery.min.css"><script src="https://www.googletagmanager.com/gtag/js?id=G-S29D3Z45V4" async></script><script>window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+    
+        gtag('config', 'G-S29D3Z45V4');</script><!--!--><!--!--><style>.pace{-webkit-pointer-events:none;pointer-events:none;-webkit-user-select:none;-moz-user-select:none;user-select:none}.pace-inactive{display:none}.pace .pace-progress{background:#3273dc;position:fixed;z-index:2000;top:0;right:100%;width:100%;height:2px}</style><script src="https://cdn.jsdelivr.net/npm/pace-js@1.2.4/pace.min.js"></script><!--!--><!--!--><!-- hexo injector head_end start --><script>
+  (function () {
+      function switchTab() {
+          if (!location.hash) {
+            return;
+          }
+
+          const id = '#' + CSS.escape(location.hash.substring(1));
+          const $tabMenu = document.querySelector(`.tabs a[href="${id}"]`);
+          if (!$tabMenu) {
+            return;
+          }
+
+          const $tabMenuContainer = $tabMenu.parentElement.parentElement;
+          Array.from($tabMenuContainer.children).forEach($menu => $menu.classList.remove('is-active'));
+          Array.from($tabMenuContainer.querySelectorAll('a'))
+              .map($menu => document.getElementById($menu.getAttribute("href").substring(1)))
+              .forEach($content => $content.classList.add('is-hidden'));
+
+          if ($tabMenu) {
+              $tabMenu.parentElement.classList.add('is-active');
+          }
+          const $activeTab = document.querySelector(id);
+          if ($activeTab) {
+              $activeTab.classList.remove('is-hidden');
+          }
+      }
+      switchTab();
+      window.addEventListener('hashchange', switchTab, false);
+  })();
+  </script><!-- hexo injector head_end end --><meta name="generator" content="Hexo 7.3.0"></head><body class="is-2-column"><nav class="navbar navbar-main"><div class="container navbar-container"><div class="navbar-brand justify-content-center"><a class="navbar-item navbar-logo" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a></div><div class="navbar-menu"><div class="navbar-start"><a class="navbar-item" href="/">Home</a><a class="navbar-item" href="/archives">Archives</a><a class="navbar-item" href="/categories">Categories</a><a class="navbar-item" href="/tags">Tags</a><a class="navbar-item" href="/about">About</a></div><div class="navbar-end"><a class="navbar-item search" title="Search" href="javascript:;"><i class="fas fa-search"></i></a></div></div></div></nav><section class="section"><div class="container"><div class="columns"><div class="column order-2 column-main is-8-tablet is-8-desktop is-8-widescreen"><div class="card"><div class="card-image"><span class="image is-7by3"><img class="fill" src="/img/voxel_cache.png" alt="VoxelMD | 6. Markdown/Canvas Autosave 的 Redis 寫入緩衝設計"></span></div><article class="card-content article" role="article"><div class="article-meta is-size-7 is-uppercase level is-mobile"><div class="level-left"><span class="level-item">Posted&nbsp;<time dateTime="2026-05-19T00:48:18.000Z" title="2026/5/19 上午8:48:18">2026-05-19</time></span><span class="level-item">Updated&nbsp;<time dateTime="2026-05-20T00:59:58.458Z" title="2026/5/20 上午8:59:58">2026-05-20</time></span><span class="level-item"><a class="link-muted" href="/categories/Development/">Development</a></span><span class="level-item">35 minutes read (About 5293 words)</span></div></div><h1 class="title is-3 is-size-4-mobile">VoxelMD | 6. Markdown/Canvas Autosave 的 Redis 寫入緩衝設計</h1><div class="content"><p>作為一個在台灣金融業打滾的軟體工程師, 可能是曾經歷過開發大型中台環繞 Mainframe 主機, 或是一顆巨大的 Database 的緣故, 導致我在面對需要頻繁寫入資料的情境都會特別敏感.</p>
+<p>剛好 VoxelMD 就是一個十分經典的案例, 使用者在編輯器裡打一段文字、或在 Canvas 裡拖一個圖形(Canvas 通常會被轉譯成 json 儲存), 每一次 keystroke &#x2F; pointer move 都產生一個新的文件狀態, 如果每一次狀態變更都直接寫 DB，對一個活躍使用者來說，每分鐘可能產生<strong>數十到上百次</strong> DB write, 這既浪費資源，也讓 DB 成為延遲瓶頸.</p>
+<p>可是如果完全不存，使用者關分頁、斷網、甚至瀏覽器 crash 時, 就會丟失所有未存的編輯. 此時必然要設計一個機制, 要能保障用戶編輯的資料不丟失, 又能不對 DB 的效能造成影響, 此時快取的技術便是一個常見的解決方法.</p>
+<h2 id="架構設計"><a href="#架構設計" class="headerlink" title="架構設計"></a>架構設計</h2><p>開始前先思考一下技術選型:</p>
+<ul>
+<li>WebSocket vs Redis Cache: 目前是單人編輯場景。WebSocket 的價值在於多人即時同步，但它帶來的複雜度（連線管理、斷線重連、CRDT &#x2F; OT 衝突解決）在現階段不值得.</li>
+<li>Spring <code>@Cacheable</code>: <code>@Cacheable</code> 是 read-through cache。我們的場景是 write buffer — 先寫 cache、再（延遲）寫 DB。語意不同。直接用 <code>StringRedisTemplate</code> 更明確、更可控.</li>
+</ul>
+<hr>
+<p>VoxelMD 整套機制由三層組成，前端兩層、後端一層 (ASCII 懶的調整…)：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">┌─────────── Frontend ───────────┐     ┌─────────── Backend ───────────────┐</span><br><span class="line">│                                │     │                                   │</span><br><span class="line">│  Layer 1: Debounce (1.5s)      │     │  Layer 3: Redis buffer + DB flush │</span><br><span class="line">│  Layer 2: Periodic flush (30s) │     │                                   │</span><br><span class="line">│                                │     │                                   │</span><br><span class="line">│  User edits                    │     │  flush=false → Redis only         │</span><br><span class="line">│    → schedule()                │     │  flush=true  → Redis → DB         │</span><br><span class="line">│    → debounce 1.5s → PATCH     │───▶│                                   │</span><br><span class="line">│    → periodic 30s  → PATCH     │     │  GET → Redis first, fallback DB   │</span><br><span class="line">│    → beforeunload  → fetch     │     │                                   │</span><br><span class="line">└────────────────────────────────┘     └───────────────────────────────────┘</span><br></pre></td></tr></table></figure>
+
+<p>簡單來說, 當用戶在前端編輯時, 網頁會及時與定時發送儲存的請求, 關閉時也會強制儲存; 而後端則會用 Redis 寫入緩衝, 減緩 DB 壓力.</p>
+<p>Article 和 Canvas 共用同一套 pattern，差異僅在並發控制策略。這裡先講共同的骨架，後面再講各自的特化設計。</p>
+<blockquote>
+<p>(OK 說完了, 懶得看細節的可以跳到最後面看結語, 我最近看網誌的 Google Analytic, 讀者平均一篇文章大概看 40 秒, 我這麼認真寫 Side Project 寫文章還讓 AI 校稿修修改改, 你們卻只愛看我買 Server, 真是傷透我的心)</p>
+</blockquote>
+<hr>
+<h2 id="前端：兩層計時器"><a href="#前端：兩層計時器" class="headerlink" title="前端：兩層計時器"></a>前端：兩層計時器</h2><h3 id="Layer-1-Debounce（1-5-秒）"><a href="#Layer-1-Debounce（1-5-秒）" class="headerlink" title="Layer 1: Debounce（1.5 秒）"></a>Layer 1: Debounce（1.5 秒）</h3><p>使用者每次編輯觸發 <code>schedule()</code>。它做兩件事：</p>
+<ol>
+<li><strong>重置 debounce timer</strong> — 如果 1.5 秒內沒有新的編輯，就發一次 <code>flush=false</code> 的 PATCH。</li>
+<li><strong>啟動 periodic timer</strong>（僅第一次）— 每 30 秒強制發一次 <code>flush=true</code>。</li>
+</ol>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="variable constant_">DEBOUNCE_MS</span>       = <span class="number">1500</span></span><br><span class="line"><span class="keyword">const</span> <span class="variable constant_">PERIODIC_FLUSH_MS</span> = <span class="number">30_000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">function</span> <span class="title function_">schedule</span>(<span class="params"></span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  dirty = <span class="literal">true</span></span><br><span class="line">  <span class="keyword">if</span> (debounceTimer) <span class="built_in">clearTimeout</span>(debounceTimer)</span><br><span class="line">  debounceTimer = <span class="built_in">setTimeout</span>(<span class="function">() =&gt;</span> <span class="title function_">save</span>(<span class="literal">false</span>), <span class="variable constant_">DEBOUNCE_MS</span>)</span><br><span class="line"></span><br><span class="line">  <span class="keyword">if</span> (!periodicTimer) &#123;</span><br><span class="line">    periodicTimer = <span class="built_in">setInterval</span>(<span class="function">() =&gt;</span> &#123;</span><br><span class="line">      <span class="keyword">if</span> (dirty) <span class="title function_">save</span>(<span class="literal">true</span>)</span><br><span class="line">    &#125;, <span class="variable constant_">PERIODIC_FLUSH_MS</span>)</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>debounce timer 的設計目的是當使用者停筆 1.5 秒時，很可能只是在想下一句話, 接著馬上又會繼續打。所以這時只需要把當前狀態暫存到 Redis 即可，不值得為了一個可能馬上被覆蓋的版本, 額外花一次 DB write。</p>
+<p>這裡也分享一下, 早期在做 UX 研究的時候, 針對 1.5 秒這種用戶的操作參數, 是需要非常嚴謹的 usability test 的, 當時的師傅 A 曾告誡我 UX 是 Scrum 的最前線, 每一個結論與抉擇都會影響著後面的 Sprint, 因此每一個設計與發現都至關重要, 後來偶拾會接觸到 PM 隨便聽 User 需求就出設計的場景, 不免心生感嘆(不知道師傅現在過得如何).</p>
+<h3 id="Layer-2-—-Periodic-flush（30-秒）"><a href="#Layer-2-—-Periodic-flush（30-秒）" class="headerlink" title="Layer 2 — Periodic flush（30 秒）"></a>Layer 2 — Periodic flush（30 秒）</h3><p>Debounce 的設計只保證停筆就暫存，但如果使用者<strong>連續不停地打字</strong>，debounce timer 會被不斷重置, 直到他終止為止。因此 Periodic timer 是安全網, 不論使用者有沒有停，每 30 秒至少落地一次。</p>
+<p>換個角度來看，這兩層各自對應一個分散式系統的標準概念：</p>
+<ul>
+<li><strong>Layer 1 是 debounce（流量抑制）</strong> — 在使用者連續輸入時，抑制前端對後端的請求尖峰，避免把高頻 keystroke 直接打到 DB。</li>
+<li><strong>Layer 2 是 periodic flush（RPO 上限保證）</strong> — 它的本質是把這套機制的 <strong>RPO（復原點目標）硬性鎖在 30 秒</strong>：即使在永不停筆這種讓 debounce 永遠不觸發的極端輸入下，系統的最大資料遺失窗口也絕不超過 30 秒。</li>
+</ul>
+<p>這兩層疊起來的效果：</p>
+<table>
+<thead>
+<tr>
+<th>使用者行為</th>
+<th>觸發</th>
+<th>flush</th>
+<th>後端行為</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>停筆 1.5 秒</td>
+<td>debounce</td>
+<td><code>false</code></td>
+<td>Redis buffer only</td>
+</tr>
+<tr>
+<td>持續編輯超過 30 秒</td>
+<td>periodic</td>
+<td><code>true</code></td>
+<td>Redis → DB</td>
+</tr>
+<tr>
+<td>離開頁面（in-app nav）</td>
+<td><code>flush()</code></td>
+<td><code>true</code></td>
+<td>Redis → DB</td>
+</tr>
+<tr>
+<td>關閉分頁 &#x2F; 重整</td>
+<td><code>flushBeforeUnload()</code></td>
+<td><code>true</code></td>
+<td>Redis → DB（keepalive）</td>
+</tr>
+</tbody></table>
+<h3 id="離場保護：flush-vs-flushBeforeUnload"><a href="#離場保護：flush-vs-flushBeforeUnload" class="headerlink" title="離場保護：flush() vs flushBeforeUnload()"></a>離場保護：<code>flush()</code> vs <code>flushBeforeUnload()</code></h3><p>離場有兩種情境，需要不同的處理：</p>
+<p><strong>In-app navigation</strong>（Vue Router 換頁）— <code>onBeforeRouteLeave</code> 觸發，此時 JS runtime 還活著，可以 <code>await flush()</code> 等 axios 完成。</p>
+<p><strong>Browser-level leave</strong>（關分頁、重整、外部連結）— <code>beforeunload</code> 事件觸發，瀏覽器給你的時間窗極短，任何 pending 的 XHR &#x2F; axios 請求都會被終止。這裡必須用原生 <code>fetch</code> + <code>keepalive: true</code>：</p>
+<figure class="highlight ts"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">function</span> <span class="title function_">flushBeforeUnload</span>(<span class="params"></span>): <span class="built_in">void</span> &#123;</span><br><span class="line">  <span class="keyword">if</span> (!dirty || !canvasId.<span class="property">value</span>) <span class="keyword">return</span></span><br><span class="line">  <span class="keyword">const</span> token = <span class="variable language_">localStorage</span>.<span class="title function_">getItem</span>(<span class="variable constant_">SESSION_TOKEN_KEY</span>)</span><br><span class="line">  <span class="keyword">if</span> (!token) <span class="keyword">return</span></span><br><span class="line">  <span class="title function_">fetch</span>(<span class="string">`/api/v1/canvases/<span class="subst">$&#123;canvasId.value&#125;</span>/scene?flush=true`</span>, &#123;</span><br><span class="line">    <span class="attr">method</span>: <span class="string">&#x27;PATCH&#x27;</span>,</span><br><span class="line">    <span class="attr">headers</span>: &#123;</span><br><span class="line">      <span class="string">&#x27;Content-Type&#x27;</span>: <span class="string">&#x27;application/json&#x27;</span>,</span><br><span class="line">      <span class="string">&#x27;Authorization&#x27;</span>: <span class="string">`Bearer <span class="subst">$&#123;token&#125;</span>`</span>,</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="attr">body</span>: <span class="title class_">JSON</span>.<span class="title function_">stringify</span>(&#123;</span><br><span class="line">      <span class="attr">expectedSceneHash</span>: sceneHash.<span class="property">value</span>,</span><br><span class="line">      <span class="attr">sceneJson</span>:         sceneJson.<span class="property">value</span>,</span><br><span class="line">    &#125;),</span><br><span class="line">    <span class="attr">keepalive</span>: <span class="literal">true</span>,</span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><code>keepalive: true</code> 告訴瀏覽器即使頁面已經被銷毀，也要把這個 request 送完。因為它有 64KB 的 body 上限限制（Chrome W3C），但我們的 payload 在 media 外部化之後通常遠低於此。這是 fire-and-forget, 沒有 response handling，因為頁面已經不在了。</p>
+<p>為什麼不用 <code>navigator.sendBeacon()</code>？因為 Beacon 只支援 POST，而我們的 autosave endpoint 是 PATCH（canvas）&#x2F; PUT（article），且 Beacon 無法設定自訂 header（我們需要 Authorization）。</p>
+<hr>
+<h2 id="後端：Redis-寫入緩衝"><a href="#後端：Redis-寫入緩衝" class="headerlink" title="後端：Redis 寫入緩衝"></a>後端：Redis 寫入緩衝</h2><h3 id="兩階段寫入"><a href="#兩階段寫入" class="headerlink" title="兩階段寫入"></a>兩階段寫入</h3><p>後端則是收到 autosave 請求後，根據 <code>flush</code> 參數決定走哪條路：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">PATCH /api/v1/canvases/&#123;id&#125;/scene?flush=false</span><br><span class="line">  1. 驗證 payload size（canvas 有 512KB 上限）</span><br><span class="line">  2. 載入 DB row</span><br><span class="line">  3. 樂觀並發檢查（canvas only）</span><br><span class="line">  4. 寫入 Redis：SET autosave:canvas:&#123;id&#125; &#123;sceneJson&#125; EX 60</span><br><span class="line">  5. 回傳現有 row（hash 不變、timestamp 不變）</span><br><span class="line"></span><br><span class="line">PATCH /api/v1/canvases/&#123;id&#125;/scene?flush=true</span><br><span class="line">  1–3. 同上</span><br><span class="line">  4. 寫入 Redis（同上）</span><br><span class="line">  5. 計算新 hash：MD5(sceneJson)</span><br><span class="line">  6. 比較新舊 hash：</span><br><span class="line">     → 相同：刪 Redis buffer，回傳現有 row（idempotent skip）</span><br><span class="line">     → 不同：更新 DB row + 刪 Redis buffer，回傳新 hash + timestamp</span><br></pre></td></tr></table></figure>
+
+<p>這個設計的核心洞察是<strong>大多數 debounce 觸發的版本，會在下一次 flush 之前被覆蓋。</strong> 假設使用者在 30 秒內停筆 10 次（觸發 10 次 debounce），這 10 次只有最後一次的版本會被 flush 寫進 DB。前 9 次的 Redis SET 雖然各花了一次網路 round-trip，但比起 9 次 DB write（含 transaction、WAL、index update），成本低了一個數量級。</p>
+<p>這裡也是 Redis 解除 DB 壓力的核心設計.</p>
+<h3 id="Redis-key-與-TTL"><a href="#Redis-key-與-TTL" class="headerlink" title="Redis key 與 TTL"></a>Redis key 與 TTL</h3><table>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Key pattern</th>
+<th>TTL</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Article</td>
+<td><code>autosave:content:&#123;articleId&#125;</code></td>
+<td>60s</td>
+</tr>
+<tr>
+<td>Canvas</td>
+<td><code>autosave:canvas:&#123;canvasId&#125;</code></td>
+<td>60s</td>
+</tr>
+</tbody></table>
+<p>我設計 TTL 60 秒，他是 periodic flush 間隔（30s）的兩倍。這確保:</p>
+<ul>
+<li>正常情況下，buffer 會被 periodic flush 主動清除（30s 觸發、flush 成功後 DEL）。</li>
+<li>如果 flush 失敗（網路抖動、後端重啟），buffer 最多在 60s 後自動過期，不會殘留成 stale data。</li>
+<li>如果使用者關分頁後再也沒回來，orphan buffer 60 秒後自動消失。</li>
+</ul>
+<h3 id="讀取路徑-buffer-優先"><a href="#讀取路徑-buffer-優先" class="headerlink" title="讀取路徑 buffer 優先"></a>讀取路徑 buffer 優先</h3><p>另外, 當讀取文章或 canvas 內容時，後端<strong>先檢查 Redis buffer</strong>：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> CanvasModel <span class="title function_">getById</span><span class="params">(Long canvasId)</span> &#123;</span><br><span class="line">    <span class="type">CanvasModel</span> <span class="variable">persisted</span> <span class="operator">=</span> canvasRepository.findById(canvasId);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> autosaveCachePort.getAutosaveSceneJson(canvasId)</span><br><span class="line">        .map(buffered -&gt; CanvasModel.builder()</span><br><span class="line">            .sceneJson(buffered)                    <span class="comment">// ← buffer 的內容</span></span><br><span class="line">            .sceneHash(persisted.getSceneHash())    <span class="comment">// ← DB 的 hash</span></span><br><span class="line">            <span class="comment">// ... other fields from DB</span></span><br><span class="line">            .build())</span><br><span class="line">        .orElse(persisted);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>這裡有一個關鍵, RS 回傳的是 <strong>buffer 的內容 + DB 的 hash</strong>, 因為:</p>
+<ul>
+<li>內容用 buffer 的：確保使用者看到自己最近的編輯，即使他還沒落地到 DB。</li>
+<li>Hash 用 DB 的：並發控制必須基於持久狀態。如果用 buffer 算的 hash，兩個 tab 可能各自看到不同的 buffer hash 而誤以為自己是最新的。</li>
+</ul>
+<p>這個設計可以讓讀取路徑成為一種 <strong>read-repair</strong>：使用者重整頁面後看到的內容是最新的（含 buffer），而 hash 仍然正確反映 DB 的狀態。</p>
+<h3 id="Hash-—-變更偵測，不是安全"><a href="#Hash-—-變更偵測，不是安全" class="headerlink" title="Hash — 變更偵測，不是安全"></a>Hash — 變更偵測，不是安全</h3><p>兩個 domain 都使用 MD5 hex（32 char）作為 content hash：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// Canvas</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> SceneHashVo <span class="title function_">compute</span><span class="params">(String sceneJson)</span> &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">SceneHashVo</span>(</span><br><span class="line">        DigestUtils.md5DigestAsHex(source.getBytes(StandardCharsets.UTF_8))</span><br><span class="line">    );</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// Article — inline in ArticleServiceImpl</span></span><br><span class="line"><span class="type">String</span> <span class="variable">contentHash</span> <span class="operator">=</span> DigestUtils.md5DigestAsHex(content.getBytes(StandardCharsets.UTF_8));</span><br></pre></td></tr></table></figure>
+
+<p>這個 hash 的用途主要是<strong>偵測內容有沒有變</strong>，所以不需要密碼學安全的程度。MD5 在同一份文件的前後版本碰撞這個 scale 上，碰撞機率可以忽略。它的優點是快、結果短（32 char 存欄位剛好）、而且 Spring API 內建。</p>
+<p>Hash 在這套機制裡扮演兩個角色：</p>
+<ol>
+<li><strong>Idempotent skip</strong> — flush 時如果 hash 沒變，跳過 DB write。這避免了使用者打了一個字又刪掉這種 no-op 變更觸發不必要的寫入。</li>
+<li><strong>Optimistic concurrency token</strong>（僅 canvas）— client 帶上次看到的 hash，後端比對不符就回 409。</li>
+</ol>
+<hr>
+<h2 id="Article-vs-Canvas：共同骨架，不同取捨"><a href="#Article-vs-Canvas：共同骨架，不同取捨" class="headerlink" title="Article vs Canvas：共同骨架，不同取捨"></a>Article vs Canvas：共同骨架，不同取捨</h2><p>Article 和 Canvas 兩者用了同一套 debounce + periodic + Redis buffer 骨架，但在三個地方做了不同的決定：</p>
+<h3 id="1-樂觀並發控制"><a href="#1-樂觀並發控制" class="headerlink" title="1. 樂觀並發控制"></a>1. 樂觀並發控制</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>Article</th>
+<th>Canvas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Client 送 hash</td>
+<td>否</td>
+<td>是（<code>expectedSceneHash</code>）</td>
+</tr>
+<tr>
+<td>後端 conflict check</td>
+<td>無</td>
+<td>有 — 不符回 <code>409 CV00002</code></td>
+</tr>
+<tr>
+<td>設計理由</td>
+<td>文章為單人編輯場景，後寫覆蓋前寫是可接受的</td>
+<td>Canvas 有多人同時開啟的可能，靜默覆蓋會丟圖</td>
+</tr>
+</tbody></table>
+<p>Article 的 hash 純粹用於 idempotent skip。Canvas 額外把它當作 concurrency token — 這是因為 Canvas 的 scene_json 包含圖形元素的位置資訊，靜默覆蓋的代價（使用者畫的東西不見了）比文章更高。</p>
+<h3 id="2-Payload-上限"><a href="#2-Payload-上限" class="headerlink" title="2. Payload 上限"></a>2. Payload 上限</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>Article</th>
+<th>Canvas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>後端檢查</td>
+<td>無明確上限</td>
+<td>512 KB（<code>MAX_SCENE_JSON_BYTES</code>）</td>
+</tr>
+<tr>
+<td>超過時</td>
+<td>靠 nginx <code>client_max_body_size</code> 擋</td>
+<td><code>400 CV00003 SCENE_JSON_TOO_LARGE</code></td>
+</tr>
+</tbody></table>
+<p>Canvas 有明確的 512KB 上限，是因為 Excalidraw 的 scene_json 在 media 外部化之前，有可能因為內嵌 base64 圖片而暴漲（我原本要寫一篇文章來講這個雷點, 但我自己都覺得有一點 hardcore, 就算了）。Media 外部化後(我把 base64 改為我自己的 S3 pre-sign URL)，scene_json 裡只剩 <code>media://&#123;id&#125;</code> 指標，512KB 足以容納非常複雜的場景。</p>
+<h3 id="3-HTTP-method-與-URL"><a href="#3-HTTP-method-與-URL" class="headerlink" title="3. HTTP method 與 URL"></a>3. HTTP method 與 URL</h3><table>
+<thead>
+<tr>
+<th></th>
+<th>Article</th>
+<th>Canvas</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Method</td>
+<td><code>PUT</code></td>
+<td><code>PATCH</code></td>
+</tr>
+<tr>
+<td>URL</td>
+<td><code>/api/v1/workspaces/&#123;wsId&#125;/articles/&#123;articleId&#125;/content?flush=</code></td>
+<td><code>/api/v1/canvases/&#123;canvasId&#125;/scene?flush=</code></td>
+</tr>
+</tbody></table>
+<p>Article 用 PUT 因為它是整體替換 content 欄位；Canvas 用 PATCH 因為它只更新 scene_json（canvas 還有 name、displayOrder 等其他欄位走另一個 PATCH endpoint）。</p>
+<hr>
+<h2 id="完整時序圖"><a href="#完整時序圖" class="headerlink" title="完整時序圖"></a>完整時序圖</h2><p>以 Canvas 為例，一個典型的編輯 session(AI 畫 ASCII 真是方便…)：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line">Time  Event                          Frontend              Backend             Redis              DB</span><br><span class="line">─────┬──────────────────────────────┬─────────────────────┬───────────────────┬──────────────────┬────────────</span><br><span class="line"> 0s   User draws a line              schedule()</span><br><span class="line">      debounce armed (1.5s)          dirty=true</span><br><span class="line">      periodic armed (30s)</span><br><span class="line">─────┤</span><br><span class="line"> 0.8s User draws another line        schedule()</span><br><span class="line">      debounce reset (1.5s)          debounceTimer reset</span><br><span class="line">─────┤</span><br><span class="line"> 2.3s Debounce fires                 save(flush=false)</span><br><span class="line">      PATCH ?flush=false             ─────────────────────▶ hash check OK     SET :canvas:42    (no write)</span><br><span class="line">      Response: old hash             ◀─────────────────────                    EX 60</span><br><span class="line">─────┤</span><br><span class="line"> 5s   User draws more                schedule()</span><br><span class="line">      debounce reset</span><br><span class="line">─────┤</span><br><span class="line"> 6.5s Debounce fires                 save(flush=false)</span><br><span class="line">      PATCH ?flush=false             ─────────────────────▶ hash check OK     SET :canvas:42    (no write)</span><br><span class="line">      Response: old hash             ◀─────────────────────                    EX 60</span><br><span class="line">─────┤</span><br><span class="line">30s   Periodic tick                  save(flush=true)</span><br><span class="line">      PATCH ?flush=true              ─────────────────────▶ hash check OK     SET :canvas:42</span><br><span class="line">                                                            compute new hash  DEL :canvas:42    UPDATE canvas</span><br><span class="line">                                                            hash differs!                       SET scene_json</span><br><span class="line">      Response: new hash + ts        ◀─────────────────────                                     SET scene_hash</span><br><span class="line">      store.markSaved()              dirty=false</span><br><span class="line">─────┤</span><br><span class="line">45s   User idle, no edits            (nothing happens)</span><br><span class="line">─────┤</span><br><span class="line">60s   Periodic tick                  dirty=false → skip    (no request)</span><br><span class="line">─────┤</span><br><span class="line">72s   User closes tab                beforeunload fires</span><br><span class="line">      flushBeforeUnload()            fetch keepalive</span><br><span class="line">      PATCH ?flush=true              ─────────────────────▶ hash check OK     SET :canvas:42</span><br><span class="line">                                                            hash same (no     DEL :canvas:42    (no write,</span><br><span class="line">                                                            new edits since                      idempotent)</span><br><span class="line">                                                            last flush)</span><br><span class="line">      (page destroyed, no response handling)</span><br></pre></td></tr></table></figure>
+
+<p>另外注意一下 periodic tick 在 60s 被跳過 — 因為 30s 的 flush 成功後 <code>dirty=false</code>，periodic tick 檢查 <code>if (dirty)</code> 不成立就不送。這避免了閒置時的無意義請求。</p>
+<hr>
+<h2 id="邊界案例"><a href="#邊界案例" class="headerlink" title="邊界案例"></a>邊界案例</h2><h3 id="使用者打了一個字又刪掉"><a href="#使用者打了一個字又刪掉" class="headerlink" title="使用者打了一個字又刪掉"></a>使用者打了一個字又刪掉</h3><p>Debounce 觸發 <code>flush=false</code>, Redis buffer 被更新。下一次 periodic flush 算 hash，發現跟 DB 一樣, <strong>idempotent skip</strong>，只刪 buffer、不寫 DB。零次無效 DB write。</p>
+<h3 id="後端重啟，Redis-buffer-還在"><a href="#後端重啟，Redis-buffer-還在" class="headerlink" title="後端重啟，Redis buffer 還在"></a>後端重啟，Redis buffer 還在</h3><p>Buffer TTL 60s。後端重啟如果在 60s 內完成，下一次 GET 會讀到 buffer、使用者不丟資料。如果超過 60s，buffer 過期、使用者看到的是上一次成功 flush 的 DB 版本, 最多丟 30 秒的編輯(兩次 periodic flush 之間的窗口)。</p>
+<p>而這個時候又可以回到 UX 的研究:</p>
+<blockquote>
+<p>最大幾秒的資料丟失是用戶可以接受的上限?</p>
+</blockquote>
+<p>補充這 <code>debounce</code>, <code>periodic</code> 兩個值目前是 hardcode，如果未來需要調整，改兩個常數即可。</p>
+<h3 id="DB-commit-失敗-—-Redis-DEL-無法參與-transaction"><a href="#DB-commit-失敗-—-Redis-DEL-無法參與-transaction" class="headerlink" title="DB commit 失敗 — Redis DEL 無法參與 transaction"></a>DB commit 失敗 — Redis DEL 無法參與 transaction</h3><p>這是整套機制裡最微妙的一個邊界。<code>autosave()</code> 是 <code>@Transactional</code>，flush 路徑的順序是：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SET buffer (Redis)  →  canvasRepository.save()  →  DEL buffer (Redis)  →  方法 return  →  ┃ transaction COMMIT ┃</span><br></pre></td></tr></table></figure>
+
+<p>關鍵在於：<strong>DB 的 commit 發生在方法 return 之後，而 Redis <code>DEL</code> 在方法內、commit 之前就執行了</strong>。Redis 操作是非交易性的副作用，無法被 <code>@Transactional</code> 涵蓋、也不會隨 DB rollback 而回滾。</p>
+<p>先釐清一個<strong>不會發生</strong>的誤解：如果 <code>canvasRepository.save()</code> 本身拋例外，<code>DEL</code> 那行根本到不了，buffer 留著、DB 一起 rollback. 這個情境是安全的。<code>DEL</code> 是順序語句、不在 <code>finally</code>。</p>
+<p>真正的殘留風險是另一個時機點：<code>save()</code> 沒拋例外，<code>DEL</code> 執行了，方法 return，<strong>接著 transaction 在 commit 階段失敗</strong>（連線在 commit 時斷、約束在 flush 時才觸發）。此刻 buffer 已被刪、DB 也 rollback，後端兩邊都沒有這次編輯。</p>
+<p>不過我認為實務上幾乎不會真的丟資料, 因為<strong>前端是 source of truth</strong>：commit 失敗 → 後端回 5xx → 前端不會呼叫 <code>markSaved()</code> → <code>dirty</code> 維持 <code>true</code> → 下一次 30s periodic tick 用記憶體裡的 scene 重送、重建 buffer。要真的遺失，必須commit 失敗 <strong>且</strong> 使用者在下次重試前關掉分頁 <strong>且</strong> 關閉時的 keepalive 也失敗三者同時成立, 這個重疊的機率低到我認為去防護反而成本過大.</p>
+<h3 id="Redis-掛了"><a href="#Redis-掛了" class="headerlink" title="Redis 掛了"></a>Redis 掛了</h3><p>後端的 <code>StringRedisTemplate</code> 操作會拋例外。<code>flush=false</code> 路徑直接失敗（Redis 是唯一目標）。<code>flush=true</code> 路徑也會失敗，因為 flush 前的 SET 失敗了。前端 catch 後靜默重試 — 下一次 debounce &#x2F; periodic tick 再試。<strong>最壞情況</strong>：Redis 長時間不可用，所有 autosave 都失敗，使用者看到的永遠是 “Saving…”。</p>
+<p>關於 Redis 故障降級的架構抉擇, 當前我刻意選擇<strong>不做降級</strong>。若 Redis 宕機就把 <code>flush=false</code> 的高頻流量 fallback 成直寫 DB，等於在 Redis 不可用的同時，把原本被緩衝吸收掉的尖峰全量灌進關聯式資料庫, 換來的是下游 DB 的連鎖崩潰（雪崩），變成我用一個更嚴重的故障取代一個較輕的故障。</p>
+<p>另外 Redis 的高可用應該由基礎設施層（Redis Sentinel &#x2F; Cluster）保障，而不是在業務應用層為一個**非核心路徑（autosave）**硬塞降級邏輯。這符合 <strong>Fail-Fast</strong> 原則, 與其讓系統帶著破損的不變式繼續跑，不如讓非核心路徑乾脆失敗、由前端 retry 兜底，把問題收斂在它該被解決的那一層。</p>
+<p>同時在大量 autosave 都失敗的情境下, 我們的 tracing 機制也可以發出效果, 發送通知給管理員去修復 Infra 相關的問題.</p>
+<h3 id="讀取路徑不防快取擊穿（cache-breakdown）"><a href="#讀取路徑不防快取擊穿（cache-breakdown）" class="headerlink" title="讀取路徑不防快取擊穿（cache breakdown）"></a>讀取路徑不防快取擊穿（cache breakdown）</h3><p>只要看到 <code>getAutosaveSceneJson(canvasId).orElse(persisted)</code> 這段 buffer-miss-then-DB 的讀取邏輯，熟悉 cache 的人應該會立刻反問, 若 buffer 過期的瞬間若有大流量同時湧入，會不會擊穿到 DB？</p>
+<p>這裡其實回歸到使用場景:</p>
+<ol>
+<li>經典 cache breakdown 之所以危險，是因為 miss 之後要做一次<strong>昂貴的重算</strong>（複雜查詢、聚合、外部呼叫），大量請求同時撞上重算才會壓垮後端。但這裡的 <code>orElse(persisted)</code> 只是一次<strong>主鍵索引查詢</strong>, 沒有重算，fallback 成本極低。</li>
+<li><strong>即使構成，這個場景也不需要防禦。</strong> 因為 autosave 的讀取路徑只有**編輯者本人（或極少數協作者）**會頻繁觸發，它不是面向大眾、會被導流放大的 read-heavy fan-out。不同於那種熱門 key 過期瞬間數千 QPS 同時 miss 的場景，所以我覺得不需要 single-flight 或是分散式鎖等機制。</li>
+</ol>
+<p>所以常說, 設計沒有卍解, 只有最符合當下需求的設計, 依場景做恰當取捨才是程式設計師該有的素養.</p>
+<hr>
+<h2 id="結語"><a href="#結語" class="headerlink" title="結語"></a>結語</h2><p>Redis 過去最長的使用方法都是, 我從 DB 內拿出來重複使用, 減少 DB 的讀取壓力, 這次是用 Redis 當一個 Buffer Pool, 減緩 DB 儲存的壓力(當然還有 Buffer 優先讀取), 個人覺得解決這個需求滿帶感的, 就和大家分享.</p>
+<p>其中因為一人開發(還有我的 Claude 好夥伴, 前端開發變得極度簡單, 我在前端的方面都快變成 lgtm 超人了), 反而讓我更有機會思考當前的設計到底合不合需求, 以及這些參數要怎麼制定, 忽然有一種反璞歸真的感覺.</p>
+<p>這一篇應該會是近期 VoxelMD 的最後一篇文章了, 目前 VoxelMD 的開發已經趨於穩定, 因為是單體版本的原因我可以非常快速的使用, 迭代與部署; 原本只是做一個給自己用來練習英文的 Markdown 筆記工具, 想不到前前後後居然也寫了六篇文章, 果然 Side Project 才是驗證能力與進步的最佳方案嗎?</p>
+<p>謝謝你看到最後(不論你是不是 40 秒的那一群人), 也預告我將開啟新的文章系列, 關於過去在信用卡與電子支付領域的彙整, 敬請期待 ~~</p>
+<p>最後小 murmur 一下, 我其實每天都會花個一分鐘看一下 google analytic, 今年多了零星的香港與中國流量, 讓我在想是不是之前中國的同事終於發現我了(Gu 老哥是你嗎?), 結果二月起湧入大量的新加坡流量, 原本猜測是之前馬來西亞的同事, 結果一看, 好嘛每一頁停留不到一秒, 根本爬蟲來著… 等年底我再好好 review 和分析一下今年的流量。</p>
+</div><div class="article-tags is-size-7 mb-4"><span class="mr-2">#</span><a class="link-muted mr-2" rel="tag" href="/tags/develop/">develop</a><a class="link-muted mr-2" rel="tag" href="/tags/AI/">AI</a><a class="link-muted mr-2" rel="tag" href="/tags/Redis/">Redis</a><a class="link-muted mr-2" rel="tag" href="/tags/Cache/">Cache</a><a class="link-muted mr-2" rel="tag" href="/tags/VoxelMD/">VoxelMD</a><a class="link-muted mr-2" rel="tag" href="/tags/Vibe-Code/">Vibe Code</a><a class="link-muted mr-2" rel="tag" href="/tags/devops/">devops</a><a class="link-muted mr-2" rel="tag" href="/tags/Canvas/">Canvas</a></div><!--!--></article></div><!--!--><nav class="post-navigation mt-4 level is-mobile"><div class="level-end"><a class="article-nav-next level level-item link-muted" href="/2026/05/15/voxelmd-5-monolithic/"><span class="level-item">VoxelMD | 5. Clean Architecture 微服務單體化流程</span><i class="level-item fas fa-chevron-right"></i></a></div></nav><!--!--></div><div class="column column-left is-4-tablet is-4-desktop is-4-widescreen  order-1"><div class="card widget" data-type="profile"><div class="card-content"><nav class="level"><div class="level-item has-text-centered flex-shrink-1"><div><figure class="image is-128x128 mx-auto mb-2"><img class="avatar" src="/img/PIX.png" alt="William Wu"></figure><p class="title is-size-4 is-block" style="line-height:inherit;">William Wu</p><p class="is-size-6 is-block">Hope you find solution here</p><p class="is-size-6 is-flex justify-content-center"><i class="fas fa-map-marker-alt mr-1"></i><span>Taiwan</span></p></div></div></nav><nav class="level is-mobile"><div class="level-item has-text-centered is-marginless"><div><p class="heading">Posts</p><a href="/archives/"><p class="title">34</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Categories</p><a href="/categories/"><p class="title">4</p></a></div></div><div class="level-item has-text-centered is-marginless"><div><p class="heading">Tags</p><a href="/tags/"><p class="title">42</p></a></div></div></nav><div class="level"><a class="level-item button is-primary is-rounded" href="https://github.com/Williamrightone" target="_blank" rel="me noopener">Follow</a></div><div class="level is-mobile is-multiline"><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="Github" href="https://github.com/Williamrightone"><i class="fab fa-github"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="LinkedIn" href="https://www.linkedin.com/in/william-wu-786857142"><i class="fab fa-linkedin"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="CakeResume" href="https://www.cake.me/willy4543"><i class="fas fa-user-tie"></i></a><a class="level-item button is-transparent is-marginless" target="_blank" rel="me noopener" title="RSS" href="/"><i class="fas fa-rss"></i></a></div></div></div><!--!--><div class="card widget" data-type="categories"><div class="card-content"><div class="menu"><h3 class="menu-label">Categories</h3><ul class="menu-list"><li><a class="level is-mobile" href="/categories/Design-Pattern/"><span class="level-start"><span class="level-item">Design Pattern</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/categories/Development/"><span class="level-start"><span class="level-item">Development</span></span><span class="level-end"><span class="level-item tag">20</span></span></a></li><li><a class="level is-mobile" href="/categories/Life/"><span class="level-start"><span class="level-item">Life</span></span><span class="level-end"><span class="level-item tag">6</span></span></a></li><li><a class="level is-mobile" href="/categories/Troll/"><span class="level-start"><span class="level-item">Troll</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li></ul></div></div></div><div class="card widget" data-type="recent-posts"><div class="card-content"><h3 class="menu-label">Recents</h3><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-19T00:48:18.000Z">2026-05-19</time></p><p class="title"><a href="/2026/05/19/voxelmd-6-cache/">VoxelMD | 6. Markdown/Canvas Autosave 的 Redis 寫入緩衝設計</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-15T10:37:43.000Z">2026-05-15</time></p><p class="title"><a href="/2026/05/15/voxelmd-5-monolithic/">VoxelMD | 5. Clean Architecture 微服務單體化流程</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-08T23:20:18.000Z">2026-05-09</time></p><p class="title"><a href="/2026/05/09/my-servers/">那些年, 我組過的伺服器</a></p><p class="categories"><a href="/categories/Troll/">Troll</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-04T22:18:17.000Z">2026-05-05</time></p><p class="title"><a href="/2026/05/05/voxelmd-4-infra-optimal/">VoxelMD | 4. 上線 TTS 優化案例與心得</a></p><p class="categories"><a href="/categories/Development/">Development</a></p></div></article><article class="media"><div class="media-content"><p class="date"><time dateTime="2026-05-03T18:02:16.000Z">2026-05-04</time></p><p class="title"><a href="/2026/05/04/2026-s1-review/">2026 第一季 Review</a></p><p class="categories"><a href="/categories/Life/">Life</a></p></div></article></div></div><div class="card widget" data-type="archives"><div class="card-content"><div class="menu"><h3 class="menu-label">Archives</h3><ul class="menu-list"><li><a class="level is-mobile" href="/archives/2026/05/"><span class="level-start"><span class="level-item">May 2026</span></span><span class="level-end"><span class="level-item tag">5</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/04/"><span class="level-start"><span class="level-item">April 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/03/"><span class="level-start"><span class="level-item">March 2026</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/02/"><span class="level-start"><span class="level-item">February 2026</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2026/01/"><span class="level-start"><span class="level-item">January 2026</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/12/"><span class="level-start"><span class="level-item">December 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/11/"><span class="level-start"><span class="level-item">November 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/10/"><span class="level-start"><span class="level-item">October 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/09/"><span class="level-start"><span class="level-item">September 2025</span></span><span class="level-end"><span class="level-item tag">3</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/08/"><span class="level-start"><span class="level-item">August 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/06/"><span class="level-start"><span class="level-item">June 2025</span></span><span class="level-end"><span class="level-item tag">4</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/04/"><span class="level-start"><span class="level-item">April 2025</span></span><span class="level-end"><span class="level-item tag">1</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/03/"><span class="level-start"><span class="level-item">March 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li><li><a class="level is-mobile" href="/archives/2025/02/"><span class="level-start"><span class="level-item">February 2025</span></span><span class="level-end"><span class="level-item tag">2</span></span></a></li></ul></div></div></div><div class="card widget" data-type="tags"><div class="card-content"><div class="menu"><h3 class="menu-label">Tags</h3><div class="field is-grouped is-grouped-multiline"><div class="control"><a class="tags has-addons" href="/tags/AI/"><span class="tag">AI</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Agile/"><span class="tag">Agile</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/BFF/"><span class="tag">BFF</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Cache/"><span class="tag">Cache</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Canvas/"><span class="tag">Canvas</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Casha/"><span class="tag">Casha</span><span class="tag">5</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Clean-Architecture/"><span class="tag">Clean Architecture</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DB/"><span class="tag">DB</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DDD/"><span class="tag">DDD</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Design-Pattern/"><span class="tag">Design Pattern</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/DevOps/"><span class="tag">DevOps</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Exception/"><span class="tag">Exception</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Garage/"><span class="tag">Garage</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Grafana/"><span class="tag">Grafana</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Jmeter/"><span class="tag">Jmeter</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Life/"><span class="tag">Life</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MQ/"><span class="tag">MQ</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/MinIO/"><span class="tag">MinIO</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Observation/"><span class="tag">Observation</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Prometheus/"><span class="tag">Prometheus</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/RBAC/"><span class="tag">RBAC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Redis/"><span class="tag">Redis</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Rstar/"><span class="tag">Rstar</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/S3-Bucket/"><span class="tag">S3 Bucket</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SDLC/"><span class="tag">SDLC</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/SOLID/"><span class="tag">SOLID</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Saga/"><span class="tag">Saga</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-Cloud/"><span class="tag">Spring Cloud</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Spring-boot/"><span class="tag">Spring boot</span><span class="tag">2</span></a></div><div class="control"><a class="tags has-addons" href="/tags/System-Design/"><span class="tag">System Design</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Thread/"><span class="tag">Thread</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/Vibe-Code/"><span class="tag">Vibe Code</span><span class="tag">6</span></a></div><div class="control"><a class="tags has-addons" href="/tags/VoxelMD/"><span class="tag">VoxelMD</span><span class="tag">7</span></a></div><div class="control"><a class="tags has-addons" href="/tags/chit-chat/"><span class="tag">chit-chat</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/colorly/"><span class="tag">colorly</span><span class="tag">4</span></a></div><div class="control"><a class="tags has-addons" href="/tags/develop/"><span class="tag">develop</span><span class="tag">29</span></a></div><div class="control"><a class="tags has-addons" href="/tags/devops/"><span class="tag">devops</span><span class="tag">3</span></a></div><div class="control"><a class="tags has-addons" href="/tags/flow/"><span class="tag">flow</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/github-Actions/"><span class="tag">github Actions</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/infrasturcture/"><span class="tag">infrasturcture</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/optimization/"><span class="tag">optimization</span><span class="tag">1</span></a></div><div class="control"><a class="tags has-addons" href="/tags/troll/"><span class="tag">troll</span><span class="tag">3</span></a></div></div></div></div></div></div><!--!--></div></div></section><footer class="footer"><div class="container"><div class="level"><div class="level-start"><a class="footer-logo is-block mb-2" href="/"><img src="/img/PIX.png" alt="William Right&#039;s Blog" height="28"></a><p class="is-size-7"><span>&copy; 2026 William Wu</span>  Powered by <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a> &amp; <a href="https://github.com/ppoffice/hexo-theme-icarus" target="_blank" rel="noopener">Icarus</a></p><p class="is-size-7">© 2025</p></div><div class="level-end"></div></div></div></footer><script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script><script src="https://cdn.jsdelivr.net/npm/moment@2.22.2/min/moment-with-locales.min.js"></script><script src="https://cdn.jsdelivr.net/npm/clipboard@2.0.4/dist/clipboard.min.js" defer></script><script>moment.locale("en");</script><script>var IcarusThemeSettings = {
+            article: {
+                highlight: {
+                    clipboard: true,
+                    fold: 'unfolded'
+                }
+            }
+        };</script><script data-pjax src="/js/column.js"></script><script src="/js/animation.js"></script><a id="back-to-top" title="Back to top" href="javascript:;"><i class="fas fa-chevron-up"></i></a><script data-pjax src="/js/back_to_top.js" defer></script><!--!--><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/cookieconsent@3.1.1/build/cookieconsent.min.js" defer></script><script>window.addEventListener("load", () => {
+      window.cookieconsent.initialise({
+        type: "info",
+        theme: "edgeless",
+        static: false,
+        position: "bottom-left",
+        content: {
+          message: "This website uses cookies to improve your experience.",
+          dismiss: "Got it!",
+          allow: "Allow cookies",
+          deny: "Decline",
+          link: "Learn more",
+          policy: "Cookie Policy",
+          href: "https://www.cookiesandyou.com/",
+        },
+        palette: {
+          popup: {
+            background: "#edeff5",
+            text: "#838391"
+          },
+          button: {
+            background: "#4b81e8"
+          },
+        },
+      });
+    });</script><script src="https://cdn.jsdelivr.net/npm/lightgallery@1.10.0/dist/js/lightgallery.min.js" defer></script><script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.8.1/dist/js/jquery.justifiedGallery.min.js" defer></script><script>window.addEventListener("load", () => {
+            if (typeof $.fn.lightGallery === 'function') {
+                $('.article').lightGallery({ selector: '.gallery-item' });
+            }
+            if (typeof $.fn.justifiedGallery === 'function') {
+                if ($('.justified-gallery > p > .gallery-item').length) {
+                    $('.justified-gallery > p > .gallery-item').unwrap();
+                }
+                $('.justified-gallery').justifiedGallery();
+            }
+        });</script><!--!--><!--!--><script src="https://cdn.jsdelivr.net/npm/pjax@0.2.8/pjax.min.js"></script><script src="/js/pjax.js"></script><!--!--><!--!--><!--!--><script data-pjax src="/js/main.js" defer></script><div class="searchbox"><div class="searchbox-container"><div class="searchbox-header"><div class="searchbox-input-container"><input class="searchbox-input" type="text" placeholder="Type something..."></div><a class="searchbox-close" href="javascript:;">×</a></div><div class="searchbox-body"></div></div></div><script data-pjax src="/js/insight.js" defer></script><script data-pjax>document.addEventListener('DOMContentLoaded', function () {
+            loadInsight({"contentUrl":"/content.json"}, {"hint":"Type something...","untitled":"(Untitled)","posts":"Posts","pages":"Pages","categories":"Categories","tags":"Tags"});
+        });</script></body></html>
